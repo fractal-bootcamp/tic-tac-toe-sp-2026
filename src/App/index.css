@@ -1,0 +1,31 @@
+.App--container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.App--board {
+  background: #fff;
+  width: 500px;
+  height: 500px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.App--cell {
+  width: 33.33%;
+  height: 33.33%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #333;
+  cursor: pointer;
+}
+
+.App--info {
+  margin-top: 0.5em;
+}
