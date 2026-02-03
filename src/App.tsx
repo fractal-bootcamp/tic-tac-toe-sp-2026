@@ -18,41 +18,23 @@ function App() {
     <div>
       <h1>Welcome to the World Championships of tic-tac-toe</h1>
       <table>
-          <tbody>
-            <tr>
-              <td onClick={() => handleCellClick(0)}>
-                {gameState.board[0] || "__"}
-              </td>
-              <td onClick={() => handleCellClick(1)}>
-                {gameState.board[1] || "__"}
-              </td>
-              <td onClick={() => setGameState(makeMove(gameState, 2))}>
-                {gameState.board[2] || "__"}
-              </td>
+        <tbody>
+          {[0, 1, 2].map((row) => (
+            <tr key={row}>
+              {[0, 1, 2].map((col) => {
+                const position = row * 3 + col;
+                return (
+                  <td
+                    key={col}
+                    onClick={() => handleCellClick(position)}
+                  >
+                    {gameState.board[position] || "__"}
+                    </td>
+                );
+              })}
             </tr>
-            <tr>
-              <td onClick={() => setGameState(makeMove(gameState, 3))}>
-                {gameState.board[3] || "__"}
-              </td>
-              <td onClick={() => setGameState(makeMove(gameState, 4))}>
-                {gameState.board[4] || "__"}
-              </td>
-              <td onClick={() => setGameState(makeMove(gameState, 5))}>
-                {gameState.board[5] || "__"}
-              </td>
-            </tr>
-            <tr>
-              <td onClick={() => setGameState(makeMove(gameState, 6))}>
-                {gameState.board[6] || "__"}
-              </td>
-              <td onClick={() => setGameState(makeMove(gameState, 7))}>
-                {gameState.board[7] || "__"}
-              </td>
-              <td onClick={() => setGameState(makeMove(gameState, 8))}>
-                {gameState.board[8] || "__"}
-              </td>
-            </tr>
-          </tbody>
+          ))}
+        </tbody>
       </table>
 
       <h2>Current player: {gameState.currentPlayer}</h2>
