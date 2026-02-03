@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createGame, makeMove } from "./tic-tac-toe";
+import { createGame, makeMove } from "./go";
 
 function App() {
   let [gameState, setGameState] = useState(getInitialGame())
