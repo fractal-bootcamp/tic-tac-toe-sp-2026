@@ -3,7 +3,7 @@ import { createGame, makeMove } from "./tic-tac-toe";
 import { Board } from "./Board";
 
 function App() {
-  let [gameState, setGameState] = useState(getInitialGame())
+  const [gameState, setGameState] = useState(getInitialGame())
 
   // TODO: display the gameState, and call `makeMove` when a player clicks a button
   return (
