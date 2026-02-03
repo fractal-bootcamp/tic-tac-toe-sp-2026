@@ -5,12 +5,14 @@ export type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell];
 export type GameState = {
   board: Board;
   currentPlayer: Player;
+  winner: Player | null;
 };
 
 export function createGame(): GameState {
   return {
     board: [null, null, null, null, null, null, null, null, null],
     currentPlayer: "X",
+    winner: null,
   };
 }
 
