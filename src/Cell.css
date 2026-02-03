@@ -1,0 +1,40 @@
+/* Board.css */
+
+/* === Board === */
+.board {
+  width: 240px; /* 3 × 80px */
+  border-collapse: collapse; /* remove gaps */
+  table-layout: fixed; /* fixed cell sizing */
+}
+
+/* === Cells === */
+.board td {
+  width: 80px;
+  height: 80px;
+
+  border: 2px solid #333;
+  box-sizing: border-box;
+
+  text-align: center;
+  vertical-align: middle;
+
+  font-family:
+    "Brush Script MT", "Lucida Handwriting", "Apple Chancery", cursive;
+
+  font-size: 3rem;
+  font-weight: normal;
+  color: #b00000;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+/* === Hover (only when playable) === */
+.board td:hover {
+  background-color: pink;
+}
+
+.board td.filled {
+  pointer-events: none;
+  cursor: default;
+}
