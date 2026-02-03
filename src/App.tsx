@@ -6,6 +6,11 @@ function App() {
   const [gameState, setGameState] = useState(getInitialGame());
 
   useEffect(() => {
+    if (!gameState.board.includes(null)) {
+      alert(`draw!`);
+      setGameState(createGame());
+    }
+
     const winner = getWinner(gameState);
     if (!winner) return;
 
@@ -34,7 +39,6 @@ function App() {
                       }
                     >
                       {" "}
-                      {index}
                       {cell ?? ""}
                     </td>
                   );
