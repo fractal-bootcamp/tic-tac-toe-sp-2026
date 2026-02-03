@@ -1,18 +1,77 @@
 import { useState } from "react";
-import { createGame, makeMove } from "./tic-tac-toe";
+import { createGame, makeMove, getWinner } from "./tic-tac-toe";
 
 function App() {
-  let [gameState, setGameState] = useState(getInitialGame())
+  let [gameState, setGameState] = useState(createGame())
 
-  // TODO: display the gameState, and call `makeMove` when a player clicks a button
-  return <div>Hello World! current player: {gameState.currentPlayer}</div>;
-}
+  const winner = getWinner(gameState);
 
-function getInitialGame() {
-  let initialGameState = createGame()
-  initialGameState = makeMove(initialGameState, 3)
-  initialGameState = makeMove(initialGameState, 0)
-  return initialGameState
+  const handleCellClick = (position: number) => {
+    if (gameState.board[position] !== null || winner !== null) {
+      return;
+    }
+
+    try {
+      const newGameState = makeMove(gameState, position);
+      setGameState(newGameState);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const resetGame = () => {
+    setGameState(createGame());
+  };
+
+  return (
+    <div style={{ textAlign: 'center', padding: '20px' }}>
+      <h1>Tic Tac Toe</h1>
+
+      {winner ? (
+        <h2>Winner: {winner}!</h2>
+      ) : (
+        <h2>Current Player: {gameState.currentPlayer}</h2>
+      )}
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 100px)',
+        gridTemplateRows: 'repeat(3, 100px)',
+        gap: '2px',
+        margin: '20px auto',
+        width: 'fit-content'
+      }}>
+        {gameState.board.map((cell, index) => (
+          <button
+            key={index}
+            onClick={() => handleCellClick(index)}
+            style={{
+              width: '100px',
+              height: '100px',
+              fontSize: '24px',
+              backgroundColor: cell ? '#f0f0f0' : 'white',
+              border: '1px solid #ccc',
+              cursor: cell || winner ? 'not-allowed' : 'pointer'
+            }}
+            disabled={cell !== null || winner !== null}
+          >
+            {cell}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={resetGame}
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          marginTop: '20px'
+        }}
+      >
+        New Game
+      </button>
+    </div>
+  );
 }
 
 export default App;
