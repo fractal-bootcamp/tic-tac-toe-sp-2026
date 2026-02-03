@@ -1,34 +1,81 @@
-import { useState } from "react";
-import { createGame, makeMove, getWinner } from "./tic-tac-toe";
+import { useState, useEffect } from "react";
+import type { GameState } from "./tic-tac-toe";
 
 function App() {
-  let [gameState, setGameState] = useState(createGame())
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const winner = getWinner(gameState);
+  const fetchGameState = async () => {
+    try {
+      const response = await fetch('/api/game');
+      const data: GameState = await response.json();
+      setGameState(data);
+    } catch (error) {
+      console.error('Failed to fetch game state:', error);
+    }
+  };
 
-  const handleCellClick = (position: number) => {
-    if (gameState.board[position] !== null || winner !== null) {
+  useEffect(() => {
+    fetchGameState();
+  }, []);
+
+  const handleCellClick = async (position: number) => {
+    if (!gameState || gameState.board[position] !== null || gameState.winner !== null) {
       return;
     }
 
+    setLoading(true);
     try {
-      const newGameState = makeMove(gameState, position);
-      setGameState(newGameState);
+      const response = await fetch('/api/move', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ position }),
+      });
+
+      if (response.ok) {
+        const data: GameState = await response.json();
+        setGameState(data);
+      } else {
+        const error = await response.json();
+        console.error('Move failed:', error.error);
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Failed to make move:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const resetGame = () => {
-    setGameState(createGame());
+  const resetGame = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/game/reset', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data: GameState = await response.json();
+        setGameState(data);
+      }
+    } catch (error) {
+      console.error('Failed to reset game:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (!gameState) {
+    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading...</div>;
+  }
 
   return (
     <div style={{ textAlign: 'center', padding: '20px' }}>
       <h1>Tic Tac Toe</h1>
 
-      {winner ? (
-        <h2>Winner: {winner}!</h2>
+      {gameState.winner ? (
+        <h2>Winner: {gameState.winner}!</h2>
       ) : (
         <h2>Current Player: {gameState.currentPlayer}</h2>
       )}
@@ -39,7 +86,8 @@ function App() {
         gridTemplateRows: 'repeat(3, 100px)',
         gap: '2px',
         margin: '20px auto',
-        width: 'fit-content'
+        width: 'fit-content',
+        opacity: loading ? 0.6 : 1
       }}>
         {gameState.board.map((cell, index) => (
           <button
@@ -51,9 +99,9 @@ function App() {
               fontSize: '24px',
               backgroundColor: cell ? '#f0f0f0' : 'white',
               border: '1px solid #ccc',
-              cursor: cell || winner ? 'not-allowed' : 'pointer'
+              cursor: cell || gameState.winner || loading ? 'not-allowed' : 'pointer'
             }}
-            disabled={cell !== null || winner !== null}
+            disabled={cell !== null || gameState.winner !== null || loading}
           >
             {cell}
           </button>
@@ -62,13 +110,15 @@ function App() {
 
       <button
         onClick={resetGame}
+        disabled={loading}
         style={{
           padding: '10px 20px',
           fontSize: '16px',
-          marginTop: '20px'
+          marginTop: '20px',
+          opacity: loading ? 0.6 : 1
         }}
       >
-        New Game
+        {loading ? 'Loading...' : 'New Game'}
       </button>
     </div>
   );
