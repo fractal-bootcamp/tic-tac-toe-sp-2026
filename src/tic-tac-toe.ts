@@ -31,8 +31,6 @@ export function makeMove(state: GameState, position: number): GameState {
     throw new Error("Game is already over");
   }
 
-  // Replace the state of the board with the currentPlayer's symbol
-
   if (currentValue != null) {
     throw Error("Position is already occupied!");
   }
@@ -65,19 +63,23 @@ export function makeMove(state: GameState, position: number): GameState {
   };
 }
 
+export interface WinnerData {
+  winner: Player;
+  winningPositions: number[];
+}
+
 /**
- * Checks if a winner exists. If so, return the winning Player symbol
+ * Checks if a winner exists. If so, return the winning Player symbol and position
  * @param state
  * @returns
  */
-export function getWinner(state: GameState): Player | null {
-  if (winDetection(state)) {
+export function getWinner(state: GameState): WinnerData | undefined {
+  const winningPositions = winDetection(state);
+  if (winningPositions) {
     // since we ret
     const winner = state.currentPlayer === "X" ? "O" : "X";
-    return winner;
+    return { winner, winningPositions };
   }
-
-  return null;
 }
 
 /**
@@ -93,7 +95,7 @@ export function switchPlayer(state: GameState): Player {
  * After each move, check board for a possible win. Return T/F for is game over
  * @param state
  */
-export function winDetection(state: GameState) {
+export function winDetection(state: GameState): number[] | void {
   const WinningPositions: number[][] = [
     // main diagonal
     [0, 4, 8],
@@ -126,9 +128,19 @@ export function winDetection(state: GameState) {
     let possibleWin = WinningPositions[i];
 
     if (possibleWin.every((position) => state.board[position] == player)) {
-      return true; //every board position from the possible win array is the same symbol = a win
+      return possibleWin; //every board position from the possible win array is the same symbol = a win
     }
   }
+}
 
+export function DrawDetection(state: GameState): boolean {
+  // if there are no nulls in the board and no winner, it's a draw
+  if (state.board.every((cell) => cell !== null) && !getWinner(state)) {
+    return true;
+  }
   return false;
+}
+
+export function isGameOver(state: GameState): boolean {
+  return getWinner(state) !== null || DrawDetection(state);
 }
