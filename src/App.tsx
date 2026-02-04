@@ -1,7 +1,12 @@
 import { useState } from "react";
-import { createGame, makeMove, CellIndex, getWinner } from "./tic-tac-toe";
-
-const CELL_SIZE = "100px";
+import {
+  createGame,
+  makeMove,
+  getWinner,
+  type CellIndex,
+  type GameState,
+} from "./tic-tac-toe";
+import "./App.css";
 
 function App() {
   let [gameState, setGameState] = useState(getInitialGame());
@@ -97,10 +102,16 @@ function App() {
 }
 
 function getInitialGame() {
-  let initialGameState = createGame()
-  initialGameState = makeMove(initialGameState, 3)
-  initialGameState = makeMove(initialGameState, 0)
-  return initialGameState
+  let initialGameState = createGame();
+  return initialGameState;
 }
+
+// Create a 'cell' component
+
+export type CellProps = {
+  cellIndex: CellIndex;
+  gameState: GameState;
+  onClick: () => void;
+};
 
 export default App;
