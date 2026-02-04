@@ -1,125 +1,37 @@
-import { useState, useEffect } from "react";
-import type { GameState } from "./tic-tac-toe";
+import { useState } from "react";
+import GameLobby from "./GameLobby";
+import GameView from "./GameView";
+
+type AppView = 'lobby' | 'game';
 
 function App() {
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [currentView, setCurrentView] = useState<AppView>('lobby');
+  const [selectedGameId, setSelectedGameId] = useState<string>('');
 
-  const fetchGameState = async () => {
-    try {
-      const response = await fetch('/api/game');
-      const data: GameState = await response.json();
-      setGameState(data);
-    } catch (error) {
-      console.error('Failed to fetch game state:', error);
-    }
+  const handleGameSelect = (gameId: string) => {
+    setSelectedGameId(gameId);
+    setCurrentView('game');
   };
 
-  useEffect(() => {
-    fetchGameState();
-  }, []);
-
-  const handleCellClick = async (position: number) => {
-    if (!gameState || gameState.board[position] !== null || gameState.winner !== null) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/move', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ position }),
-      });
-
-      if (response.ok) {
-        const data: GameState = await response.json();
-        setGameState(data);
-      } else {
-        const error = await response.json();
-        console.error('Move failed:', error.error);
-      }
-    } catch (error) {
-      console.error('Failed to make move:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleBackToLobby = () => {
+    setCurrentView('lobby');
+    setSelectedGameId('');
   };
-
-  const resetGame = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/game/reset', {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        const data: GameState = await response.json();
-        setGameState(data);
-      }
-    } catch (error) {
-      console.error('Failed to reset game:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!gameState) {
-    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading...</div>;
-  }
 
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h1>Tic Tac Toe</h1>
-
-      {gameState.winner ? (
-        <h2>Winner: {gameState.winner}!</h2>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
+      {currentView === 'lobby' ? (
+        <GameLobby onGameSelect={handleGameSelect} />
       ) : (
-        <h2>Current Player: {gameState.currentPlayer}</h2>
+        <GameView
+          gameId={selectedGameId}
+          onBackToLobby={handleBackToLobby}
+        />
       )}
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 100px)',
-        gridTemplateRows: 'repeat(3, 100px)',
-        gap: '2px',
-        margin: '20px auto',
-        width: 'fit-content',
-        opacity: loading ? 0.6 : 1
-      }}>
-        {gameState.board.map((cell, index) => (
-          <button
-            key={index}
-            onClick={() => handleCellClick(index)}
-            style={{
-              width: '100px',
-              height: '100px',
-              fontSize: '24px',
-              backgroundColor: cell ? '#f0f0f0' : 'white',
-              border: '1px solid #ccc',
-              cursor: cell || gameState.winner || loading ? 'not-allowed' : 'pointer'
-            }}
-            disabled={cell !== null || gameState.winner !== null || loading}
-          >
-            {cell}
-          </button>
-        ))}
-      </div>
-
-      <button
-        onClick={resetGame}
-        disabled={loading}
-        style={{
-          padding: '10px 20px',
-          fontSize: '16px',
-          marginTop: '20px',
-          opacity: loading ? 0.6 : 1
-        }}
-      >
-        {loading ? 'Loading...' : 'New Game'}
-      </button>
     </div>
   );
 }
