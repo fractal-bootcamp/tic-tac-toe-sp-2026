@@ -15,10 +15,7 @@ function App() {
     if (winner) {
       return 'GAME OVER! The winner was: ' + winner
     }
-    return 'Ultimate Tic-Tac-Toe! Current player: ' 
-      + gameState.currentPlayer 
-      + ' | Available square: ' 
-      + (gameState.requiredBoardIndex ?? 'Any')
+    return `Current player: ${gameState.currentPlayer}`
   }
 
   return (
@@ -30,8 +27,9 @@ function App() {
         justifyContent: 'center',
         alignItems: 'center'
       }}>
+        <h3>Ultimate Tic-Tac-Toe!</h3>
         <div style={{
-          padding: '2rem',
+          paddingBottom: '2rem'
         }}
           >{getGameInfoText()}</div>
         <MainBoard
