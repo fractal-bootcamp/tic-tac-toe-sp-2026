@@ -1,10 +1,17 @@
 /* Board.css */
 
+body {
+  background-color: rgb(201, 201, 201);
+  text-align: center;
+  font-family: monospace;
+}
+
 /* === Board === */
 .board {
   width: 240px; /* 3 × 80px */
   border-collapse: collapse; /* remove gaps */
   table-layout: fixed; /* fixed cell sizing */
+  margin: 50px auto;
 }
 
 /* === Cells === */
@@ -18,23 +25,54 @@
   text-align: center;
   vertical-align: middle;
 
-  font-family:
-    "Brush Script MT", "Lucida Handwriting", "Apple Chancery", cursive;
-
   font-size: 3rem;
   font-weight: normal;
-  color: #b00000;
+  /* color: #b00000; */
 
   cursor: pointer;
   user-select: none;
+  background-color: rgb(255, 255, 255);
+  transition: background-color 0.3s ease;
 }
 
 /* === Hover (only when playable) === */
 .board td:hover {
-  background-color: pink;
+  background-color: rgb(201, 201, 201);
 }
 
 .board td.filled {
   pointer-events: none;
   cursor: default;
+}
+
+.element {
+  background-color: #3498db;
+  transition: background-color 0.3s ease;
+}
+
+.element:hover {
+  background-color: #2980b9;
+}
+
+.error-message {
+  animation: fadeInOut 3s ease-in-out forwards;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }

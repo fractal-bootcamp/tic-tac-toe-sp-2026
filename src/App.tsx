@@ -5,6 +5,7 @@ import "./Cell.css";
 
 function App() {
   const [gameState, setGameState] = useState(getInitialGame());
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const restartGame = async () => {
     try {
@@ -48,7 +49,7 @@ function App() {
 
     // no winner, draw
     if (!winner && !gameState.board.includes(null)) {
-      alert(`draw!`);
+      setErrorMessage("draw!");
       restartGame();
       return;
     }
@@ -58,11 +59,21 @@ function App() {
 
     // winner
     if (winner) {
-      alert(`${winner} wins!`);
+      setErrorMessage(`${winner} wins!`);
       restartGame();
       return;
     }
   }, [gameState]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000); // Match your animation duration
+
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
   useEffect(() => {
     getGameState();
@@ -95,7 +106,12 @@ function App() {
           ))}
         </tbody>
       </table>
-      <div>Hello World! current player: {gameState.currentPlayer}</div>
+      <div>current player: {gameState.currentPlayer}</div>
+      <div></div>
+
+      {errorMessage ?? (
+        <div className={errorMessage ?? "error-message"}>{errorMessage}</div>
+      )}
     </div>
   );
 }
