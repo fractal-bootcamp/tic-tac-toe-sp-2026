@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { createGame, makeMove, getWinner } from "./tic-tac-toe";
+import { createGame, getWinner } from "./tic-tac-toe";
+import type { GameState } from "./tic-tac-toe";
 import "./Cell.css";
 
 function App() {
@@ -19,13 +20,6 @@ function App() {
     setGameState(createGame());
   }, [gameState]);
 
-  // const getCurrentGame = async () => {
-  //   const response = await fetch("/api/game");
-  //   // console.log(game);
-  //   const game = await response.json();
-  //   console.log(game);
-  // };
-
   useEffect(() => {
     const fetchGameState = async () => {
       try {
@@ -36,7 +30,7 @@ function App() {
         console.error("Failed to fetch game state:", error);
         // Fallback to default state
         setGameState({
-          board: ["X", "O", null, null, null, null, null, null, null],
+          board: [null, null, null, null, null, null, null, null, null],
           currentPlayer: "X",
         });
       }
@@ -45,7 +39,32 @@ function App() {
     fetchGameState();
   }, []);
 
-  const makeMoveRequest = async (prev: number, index: number) => {
+  // const makeMoveRequest = async (gs: GameState, index: number) => {
+  //   console.log("doing");
+  //   try {
+  //     const response = await fetch("/api/move", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         gs,
+  //         index,
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Request failed");
+  //     }
+
+  //     const data = await response.json();
+  //     console.log("Success:", data);
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //   }
+  // };
+
+  const makeMoveRequest = async (gs: GameState, index: number) => {
     console.log("doing");
     try {
       const response = await fetch("/api/move", {
@@ -54,7 +73,7 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prev,
+          gs,
           index,
         }),
       });
@@ -63,16 +82,19 @@ function App() {
         throw new Error("Request failed");
       }
 
-      const data = await response.json();
+      const data: GameState = await response.json();
       console.log("Success:", data);
+      // return data;
+
+      // gameState;
+
+      setGameState(data);
     } catch (error) {
       console.error("Error:", error);
+      // return null;
+      setGameState(gameState);
     }
   };
-
-  useEffect(() => {
-    makeMoveRequest(6, 6);
-  }, []);
 
   // TODO: display the gameState, and call `makeMove` when a player clicks a button
   return (
@@ -91,9 +113,7 @@ function App() {
                       <td
                         key={index}
                         className={cell ? "filled" : ""}
-                        onClick={() =>
-                          setGameState((prev) => makeMove(prev, index))
-                        }
+                        onClick={() => makeMoveRequest(gameState, index)}
                       >
                         {cell ?? ""}
                       </td>

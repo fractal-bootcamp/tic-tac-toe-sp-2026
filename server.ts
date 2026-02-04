@@ -1,42 +1,36 @@
-// objectives:
-
-// Add a /game (GET) and /move (POST) endpoints
-// call makeMove in the server, manage the game state in-memory
-// Use fetch() in App.tsx to read and write game data via a server
-// Goal State:
-// your game has identical functionality, but all game state is managed by the server
-// game state persists if you refresh the tab, but not if you restart the server
-
-// server.js
 import express from "express";
 import cors from "cors";
+import { makeMove } from "./src/tic-tac-toe.ts";
 
-import { createGame, getWinner, makeMove } from "./src/tic-tac-toe.ts";
-import type { GameState } from "./src/tic-tac-toe.ts";
-
-let gameState: GameState = {
+const app = express();
+app.use(cors());
+app.use(express.json());
+console.log(1234);
+const gameState = {
   board: ["X", "O", null, null, null, null, null, null, null],
   currentPlayer: "X",
 };
 
-console.log(gameState);
-const app = express();
-app.use(cors());
-app.use(express.json());
+app.get("/api/game", (req, res) => {
+  res.json(gameState);
+});
 
-app.get("/api/game", (_req, res) => {
-  res.json({
-    board: ["X", "O", null, null, null, null, null, null, null],
-    currentPlayer: "X",
-  });
+app.get("/api/asdf", (req, res) => {
+  res.json(gameState);
 });
 
 app.post("/api/move", (req, res) => {
-  const { prev, index } = req.body;
-  console.log(`Player ${prev} moved to ${index}`);
-  res.json({ success: true, message: "Move received" });
+  const { gs, index } = req.body;
+
+  // your move logic here
+  console.log("make amove");
+
+  makeMove(gs, index);
+
+  console.log(`Player  moved to ${index}`);
+  res.json(gameState);
 });
 
 app.listen(3001, () => {
-  console.log("API server running on http://localhost:3001");
+  console.log("rrr API server running on http://localhost:3001");
 });
