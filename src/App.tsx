@@ -25,7 +25,7 @@ function App() {
 
   function Cell( {cell, index}: { cell: string | null, index: number} ) {
     return (
-      <div style={cellStyle} onClick={() => setGameState(makeMove(gameState, index))}>{cell || "_"}</div>
+      <div style={cellStyle} onClick={() => setGameState(makeMove(gameState, index))}>{cell || " "}</div>
     )
   }
 
