@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export type Player = "X" | "O";
 
 export type Cell = Player | null;
@@ -12,6 +14,7 @@ export type Cell = Player | null;
 export type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell];
 
 export type GameState = {
+  id: string;
   board: Board;
   currentPlayer: Player;
   winner: Player | null;
@@ -19,6 +22,7 @@ export type GameState = {
 
 export function createGame(): GameState {
   return {
+    id: uuidv4(),
     board: [null, null, null, null, null, null, null, null, null],
     currentPlayer: "X",
     winner: null,
@@ -47,6 +51,7 @@ export function makeMove(state: GameState, position: number): GameState {
   newBoard[position] = state.currentPlayer;
 
   const newState: GameState = {
+    id: state.id,
     board: newBoard,
     currentPlayer: state.currentPlayer === "X" ? "O" : "X",
     winner: null as (Player | null),
