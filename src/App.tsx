@@ -1,22 +1,72 @@
 import { useState, useEffect } from "react";
-import { createGame, makeMove, getWinner } from "./tic-tac-toe";
+import { createGame, getWinner } from "./tic-tac-toe";
+import type { GameState } from "./tic-tac-toe";
 import "./Cell.css";
 
 function App() {
   const [gameState, setGameState] = useState(getInitialGame());
 
+  const restartGame = async () => {
+    try {
+      const response = await fetch("/api/restart", {
+        method: "POST",
+      });
+
+      const data = await response.json();
+      setGameState(data);
+    } catch (error) {
+      console.error("Failed to make move:", error);
+    }
+  };
+
+  const getGameState = async () => {
+    const response = await fetch("/api/game");
+    const data = await response.json();
+    // !gameState.board.includes(null) ? restartGame() : setGameState(data);
+    setGameState(data);
+  };
+
+  const makeMove = async (gState: GameState, index: number) => {
+    try {
+      const response = await fetch("/api/move", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ gState, index }),
+      });
+
+      const data = await response.json();
+      setGameState(data);
+    } catch (error) {
+      console.error("Failed to make move:", error);
+    }
+  };
+
   useEffect(() => {
-    if (!gameState.board.includes(null)) {
+    const winner = getWinner(gameState);
+
+    // no winner, draw
+    if (!winner && !gameState.board.includes(null)) {
       alert(`draw!`);
-      setGameState(createGame());
+      restartGame();
+      return;
     }
 
-    const winner = getWinner(gameState);
+    // no winner
     if (!winner) return;
 
-    alert(`${winner} wins!`);
-    setGameState(createGame());
+    // winner
+    if (winner) {
+      alert(`${winner} wins!`);
+      restartGame();
+      return;
+    }
   }, [gameState]);
+
+  useEffect(() => {
+    getGameState();
+  }, []);
 
   // TODO: display the gameState, and call `makeMove` when a player clicks a button
   return (
@@ -34,9 +84,7 @@ function App() {
                     <td
                       key={index}
                       className={cell ? "filled" : ""}
-                      onClick={() =>
-                        setGameState((prev) => makeMove(prev, index))
-                      }
+                      onClick={() => makeMove(gameState, index)}
                     >
                       {" "}
                       {cell ?? ""}
@@ -47,7 +95,6 @@ function App() {
           ))}
         </tbody>
       </table>
-
       <div>Hello World! current player: {gameState.currentPlayer}</div>
     </div>
   );
@@ -56,8 +103,7 @@ function App() {
 function getInitialGame() {
   let initialGameState = createGame();
   // initialGameState = makeMove(initialGameState, 3);
-  // initialGameState = m
-  // akeMove(initialGameState, 0);
+  // initialGameState = makeMove(initialGameState, 0);
   return initialGameState;
 }
 
