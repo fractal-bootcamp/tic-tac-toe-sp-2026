@@ -29,7 +29,7 @@ export function getWinner(state: GameState): Player | null {
   ];
 
   for (const [a, b, c] of winLines) {
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+    if (board && board[a] && board[a] === board[b] && board[a] === board[c]) {
       return board[a];
     }
   }
