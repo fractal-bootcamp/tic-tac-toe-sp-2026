@@ -23,9 +23,16 @@ const cellStyle = {
 function App() {
   let [gameState, setGameState] = useState(getInitialGame())
 
+  function handleCellClick(index: number){
+     setGameState(makeMove(gameState, index))
+     console.log('gameState:', gameState) // async - new value not immediately available
+  }
+
   function Cell( {cell, index}: { cell: string | null, index: number} ) {
     return (
-      <div style={cellStyle} onClick={() => setGameState(makeMove(gameState, index))}>{cell || " "}</div>
+      <div style={cellStyle} onClick={() => handleCellClick(index)}>
+        {cell || " "}
+      </div>
     )
   }
 

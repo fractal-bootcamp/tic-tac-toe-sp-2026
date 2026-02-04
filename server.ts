@@ -18,10 +18,11 @@ app.get("/api/game", (request, response) => {
    response.json(gameState)
 })
 
-// Post move to server 
+// Post move to server - verified with Postman
 app.post("/api/move", (request, response)=> {
-    const position = request.body 
-    response.send("Received position" + position)
+    const position = request.body.position 
+    gameState = makeMove(gameState, position)
+    response.json(gameState)
 })
 
 
