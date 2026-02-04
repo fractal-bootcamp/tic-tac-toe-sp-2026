@@ -48,6 +48,8 @@ function App() {
       }
     </div>
 
+    <button onClick={()=> setGameState(createGame())}>Start new game</button>
+
     {/* <div>Current player: {gameState.currentPlayer}</div>
     <div> 
       {getWinner(gameState) &&
