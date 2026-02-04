@@ -25,6 +25,12 @@ app.post("/api/move", (request, response)=> {
     response.json(gameState)
 })
 
+// Create new game
+app.post('/api/game/reset', (request, response) => {
+  gameState = createGame()
+  response.json(gameState)
+})
+
 
 ViteExpress.listen(app, PORT, () => 
     console.log(`Server is listening on port ${PORT}`));

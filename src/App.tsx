@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createGame, makeMove, getWinner } from "./tic-tac-toe";
+import { useState, useEffect } from "react";
+import { createGame, getWinner } from "./tic-tac-toe";
 import "./App.css"; 
 
 const boardStyle = {
@@ -23,9 +23,33 @@ const cellStyle = {
 function App() {
   let [gameState, setGameState] = useState(getInitialGame())
 
+  useEffect(() => {
+     fetch('http://localhost:3000/api/game', {
+      method: 'GET'})
+      .then(response => response.json())
+      .then(data => setGameState(data)) 
+      .catch(error => console.error('Error:', error))
+  },[])
+
   function handleCellClick(index: number){
-     setGameState(makeMove(gameState, index))
-     console.log('gameState:', gameState) // async - new value not immediately available
+     //setGameState(makeMove(gameState, index))
+     fetch('http://localhost:3000/api/move', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ position: index })
+    })
+      .then(response => response.json())
+      .then(data => setGameState(data)) 
+      .catch(error => console.error('Error:', error))
+     // console.log('gameState:', gameState) // async - new value not immediately available
+  }
+
+  function handleNewGame(){
+    fetch('http://localhost:3000/api/game/reset', {
+      method: 'POST'})
+      .then(response => response.json())
+      .then(data => setGameState(data)) 
+      .catch(error => console.error('Error:', error))
   }
 
   function Cell( {cell, index}: { cell: string | null, index: number} ) {
@@ -55,10 +79,12 @@ function App() {
       }
     </div>
 
-    <button onClick={()=> setGameState(createGame())}>Start new game</button>
+    <button onClick={()=> handleNewGame()}>Start new game</button>
     </>
   )
 
+
+// Initial state before fetch completes so component renders something that is then replaced immediately
 function getInitialGame() {
   let initialGameState = createGame()
   return initialGameState
