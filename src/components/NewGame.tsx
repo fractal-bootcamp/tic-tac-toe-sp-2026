@@ -1,5 +1,7 @@
+import type { Player } from "../tic-tac-toe";
+
 export interface NewGameButtonProps {
-  winner: string | null;
+  winner?: Player; // optional
 }
 
 export function NewGameButton(props: NewGameButtonProps) {

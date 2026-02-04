@@ -83,75 +83,83 @@ describe("makeMove", () => {
 // getWinner
 // ---------------------------------------------------------------------------
 describe("getWinner", () => {
-  it("returns null for an empty board", () => {
-    expect(getWinner(createGame())).toBeNull();
+  it("returns undefined for an empty board", () => {
+    expect(getWinner(createGame())).toBeUndefined();
   });
 
-  it("returns null when no one has won yet", () => {
+  it("returns undefined when no one has won yet", () => {
     // X(0), O(4)
     const state = playMoves(0, 4);
-    expect(getWinner(state)).toBeNull();
+    expect(getWinner(state)).toBeUndefined();
   });
 
   // --- Row wins ---
   it("detects X winning with the top row", () => {
     // X(0), O(3), X(1), O(4), X(2)
     const state = playMoves(0, 3, 1, 4, 2);
-    expect(getWinner(state)).toBe("X");
+    expect(getWinner(state)?.winner).toBe("X");
+    expect(getWinner(state)?.winningPositions).toEqual([0, 1, 2]);
   });
 
   it("detects O winning with the middle row", () => {
     // X(0), O(3), X(1), O(4), X(6), O(5)
     const state = playMoves(0, 3, 1, 4, 6, 5);
-    expect(getWinner(state)).toBe("O");
+    expect(getWinner(state)?.winner).toBe("O");
+    expect(getWinner(state)?.winningPositions).toEqual([3, 4, 5]);
   });
 
   it("detects X winning with the bottom row", () => {
     // X(6), O(0), X(7), O(1), X(8)
     const state = playMoves(6, 0, 7, 1, 8);
-    expect(getWinner(state)).toBe("X");
+    expect(getWinner(state)?.winner).toBe("X");
+    expect(getWinner(state)?.winningPositions).toEqual([6, 7, 8]);
   });
 
   // --- Column wins ---
   it("detects X winning with the left column", () => {
     // X(0), O(1), X(3), O(4), X(6)
     const state = playMoves(0, 1, 3, 4, 6);
-    expect(getWinner(state)).toBe("X");
+    expect(getWinner(state)?.winner).toBe("X");
+    expect(getWinner(state)?.winningPositions).toEqual([0, 3, 6]);
   });
 
   it("detects O winning with the middle column", () => {
     // X(0), O(1), X(3), O(4), X(8), O(7)
     const state = playMoves(0, 1, 3, 4, 8, 7);
-    expect(getWinner(state)).toBe("O");
+    expect(getWinner(state)?.winner).toBe("O");
+    expect(getWinner(state)?.winningPositions).toEqual([1, 4, 7]);
   });
 
   it("detects X winning with the right column", () => {
     // X(2), O(0), X(5), O(1), X(8)
     const state = playMoves(2, 0, 5, 1, 8);
-    expect(getWinner(state)).toBe("X");
+    expect(getWinner(state)?.winner).toBe("X");
+    expect(getWinner(state)?.winningPositions).toEqual([2, 5, 8]);
   });
 
   // --- Diagonal wins ---
   it("detects X winning with the main diagonal", () => {
     // X(0), O(1), X(4), O(2), X(8)
     const state = playMoves(0, 1, 4, 2, 8);
-    expect(getWinner(state)).toBe("X");
+    expect(getWinner(state)?.winner).toBe("X");
+    expect(getWinner(state)?.winningPositions).toEqual([0, 4, 8]);
   });
 
   it("detects O winning with the anti-diagonal", () => {
     // X(0), O(2), X(1), O(4), X(8), O(6)
     const state = playMoves(0, 2, 1, 4, 8, 6);
-    expect(getWinner(state)).toBe("O");
+    expect(getWinner(state)?.winner).toBe("O");
+    expect(getWinner(state)?.winningPositions).toEqual([2, 4, 6]);
   });
 
   // --- Draw / full board ---
-  it("returns null on a draw (full board, no winner)", () => {
+  it("returns undefined on a draw (full board, no winner)", () => {
     // X O X
     // X X O
     // O X O
     // Moves: X(0), O(1), X(2), O(5), X(3), O(6), X(4), O(8), X(7)
     const state = playMoves(0, 1, 2, 5, 3, 6, 4, 8, 7);
-    expect(getWinner(state)).toBeNull();
+    expect(getWinner(state)).toBeUndefined();
     // Also verify the board is full
     expect(state.board.every((cell) => cell !== null)).toBe(true);
   });
@@ -172,12 +180,13 @@ describe("full game sequences", () => {
     state = makeMove(state, 3); // O middle-left
 
     // X hasn't won yet
-    expect(getWinner(state)).toBeNull();
+    expect(getWinner(state)).toBeUndefined();
 
     state = makeMove(state, 7); // X bottom-middle
 
     // X wins: positions 1, 4, 7 (middle column)
-    expect(getWinner(state)).toBe("X");
+    expect(getWinner(state)?.winner).toBe("X");
+    expect(getWinner(state)?.winningPositions).toEqual([1, 4, 7]);
   });
 
   it("plays a complete game ending in a draw", () => {
@@ -185,7 +194,7 @@ describe("full game sequences", () => {
     // O | X | X
     // O | X | O
     const state = playMoves(0, 1, 2, 3, 4, 6, 5, 8, 7);
-    expect(getWinner(state)).toBeNull();
+    expect(getWinner(state)).toBeUndefined();
     expect(state.board.every((cell) => cell !== null)).toBe(true);
   });
 

@@ -7,12 +7,12 @@ import { NewGameButton } from "./components/NewGame";
 function App() {
   let [gameState, setGameState] = useState(getInitialGame());
 
-  let winner = getWinner(gameState);
+  let winnerInfo = getWinner(gameState);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-      <div className="text-lg text-shadow-2xs">Tic Tac Toe</div>
-      <div className="text-justify-left">
+      <div className="text-4xl text-shadow-2xs">Tic Tac Toe</div>
+      <div className="text-justify-center text-sm">
         ruin friendships and familial ties
       </div>
       <div>
@@ -20,13 +20,16 @@ function App() {
           board={gameState.board}
           currentPlayer={gameState.currentPlayer}
           onCellClick={(idx) => {
-            if (winner) return;
+            if (winnerInfo?.winner) return;
             setGameState(makeMove(gameState, idx));
           }}
+          winningPositions={winnerInfo?.winningPositions}
         />
       </div>
-      {winner ? null : <p>current player: {gameState.currentPlayer}</p>}
-      <NewGameButton winner={winner} />
+      {winnerInfo?.winner ? null : (
+        <p>current player: {gameState.currentPlayer}</p>
+      )}
+      <NewGameButton winner={winnerInfo?.winner} />
     </div>
   );
 }
