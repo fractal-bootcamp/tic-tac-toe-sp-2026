@@ -1,6 +1,6 @@
 import './App.css'
 import { useState } from "react";
-import { createGame, getGameWinner, makeMove, TIE, type Player} from "./ultimate-tic-tac-toe";
+import { createGame, getGameWinner, makeMove, TIE } from "./ultimate-tic-tac-toe";
 import SubBoard from "./components/SubBoard"
 
 function App() {
@@ -50,7 +50,6 @@ function App() {
               onClick={onClick}
             />
           ))}
-
         </div>
       </div>
     </>
