@@ -18,7 +18,27 @@ function App() {
 
   function IndividualCell(props: { index: CellIndex }) {
     return (
-      <button onClick={() => handleCellClick(props.index)}>
+      <button
+        onClick={() => handleCellClick(props.index)}
+        style={{
+          width: "100%",
+          aspectRatio: 1,
+          borderTop: [0, 1, 2].includes(props.index)
+            ? "1px solid white"
+            : "1px solid black",
+          borderBottom: [6, 7, 8].includes(props.index)
+            ? "1px solid white"
+            : "1px solid black",
+          borderRight: [2, 5, 8].includes(props.index)
+            ? "1px solid white"
+            : "1px solid black",
+          borderLeft: [0, 3, 6].includes(props.index)
+            ? "1px solid white"
+            : "1px solid black",
+          backgroundColor:
+            gameState.board[props.index] !== null ? "light-grey" : "white",
+        }}
+      >
         {gameState.board[props.index]}
       </button>
     );
@@ -36,25 +56,47 @@ function App() {
   // TODO: display the gameState, and call `makeMove` when a player clicks a button
   return (
     <>
-      <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
+      >
         <h1> Tic, Tac, Toe</h1>
         <br />
         current player: {gameState.currentPlayer}
         <br />
       </div>
-      {[0, 1, 2].map((i) => (
-        <IndividualCell key={i} index={i as CellIndex} />
-      ))}
-      <br />
-      {[3, 4, 5].map((i) => (
-        <IndividualCell key={i} index={i as CellIndex} />
-      ))}
-      <br />
-      {[6, 7, 8].map((i) => (
-        <IndividualCell key={i} index={i as CellIndex} />
-      ))}
-
-      <WinnerDisplay />
+      <div
+        style={{
+          display: "grid",
+          width: "100%",
+          gap: "0px",
+          margin: "o auto",
+          padding: "0px",
+          justifyContent: "center",
+          alignItems: "center",
+          maxWidth: "min(500px,80vh)",
+          margin: "0 auto",
+          gridTemplateColumns: "repeat(3,1fr)",
+        }}
+      >
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <IndividualCell key={i} index={i as CellIndex} />
+        ))}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
+      >
+        <WinnerDisplay />
+      </div>
     </>
   );
 }
