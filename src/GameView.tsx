@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { GameState } from "./tic-tac-toe";
 
 interface GameViewProps {
@@ -9,6 +9,51 @@ interface GameViewProps {
 function GameView({ gameId, onBackToLobby }: GameViewProps) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+
+  const connectWebSocket = useCallback(() => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/api/games/${gameId}/ws`;
+
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setIsConnected(true);
+      console.log('WebSocket connected');
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'gameUpdate') {
+          setGameState(data.gameState);
+        }
+      } catch (error) {
+        console.error('Failed to parse WebSocket message:', error);
+      }
+    };
+
+    ws.onclose = (event) => {
+      setIsConnected(false);
+      console.log('WebSocket disconnected');
+
+      if (event.code === 1008) {
+        // Game not found
+        console.error('Game not found');
+        onBackToLobby();
+      } else {
+        // Attempt to reconnect after a delay
+        setTimeout(connectWebSocket, 3000);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setIsConnected(false);
+    };
+  }, [gameId, onBackToLobby]);
 
   const fetchGameState = async () => {
     try {
@@ -18,7 +63,7 @@ function GameView({ gameId, onBackToLobby }: GameViewProps) {
         setGameState(data);
       } else if (response.status === 404) {
         console.error('Game not found');
-        onBackToLobby(); // Return to lobby if game doesn't exist
+        onBackToLobby();
       } else {
         console.error('Failed to fetch game state');
       }
@@ -28,11 +73,20 @@ function GameView({ gameId, onBackToLobby }: GameViewProps) {
   };
 
   useEffect(() => {
-    fetchGameState();
-  }, [gameId]);
+    // Connect to WebSocket for live updates
+    connectWebSocket();
+
+    // Cleanup on unmount
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, [gameId, connectWebSocket]);
 
   const handleCellClick = async (position: number) => {
-    if (!gameState || gameState.board[position] !== null || gameState.winner !== null) {
+    if (!gameState || gameState.board[position] !== null || gameState.winner !== null || !isConnected) {
       return;
     }
 
@@ -46,13 +100,11 @@ function GameView({ gameId, onBackToLobby }: GameViewProps) {
         body: JSON.stringify({ position }),
       });
 
-      if (response.ok) {
-        const data: GameState = await response.json();
-        setGameState(data);
-      } else {
+      if (!response.ok) {
         const error = await response.json();
         console.error('Move failed:', error.error);
       }
+      // Don't manually update state - WebSocket will handle it
     } catch (error) {
       console.error('Failed to make move:', error);
     } finally {
@@ -61,18 +113,18 @@ function GameView({ gameId, onBackToLobby }: GameViewProps) {
   };
 
   const resetGame = async () => {
+    if (!isConnected) return;
+
     setLoading(true);
     try {
       const response = await fetch(`/api/games/${gameId}/reset`, {
         method: 'POST',
       });
 
-      if (response.ok) {
-        const data: GameState = await response.json();
-        setGameState(data);
-      } else {
+      if (!response.ok) {
         console.error('Failed to reset game');
       }
+      // Don't manually update state - WebSocket will handle it
     } catch (error) {
       console.error('Failed to reset game:', error);
     } finally {
@@ -126,9 +178,22 @@ function GameView({ gameId, onBackToLobby }: GameViewProps) {
           backgroundColor: '#f9f9f9',
           padding: '8px 12px',
           borderRadius: '5px',
-          border: '1px solid #eee'
+          border: '1px solid #eee',
+          marginRight: '10px'
         }}>
           Game: {gameState.id.substring(0, 8)}...
+        </span>
+
+        <span style={{
+          fontSize: '14px',
+          color: isConnected ? '#4caf50' : '#f44336',
+          backgroundColor: isConnected ? '#e8f5e9' : '#ffebee',
+          padding: '8px 12px',
+          borderRadius: '5px',
+          border: `1px solid ${isConnected ? '#4caf50' : '#f44336'}`,
+          fontWeight: 'bold'
+        }}>
+          {isConnected ? '● Live' : '● Disconnected'}
         </span>
       </div>
 
@@ -174,20 +239,20 @@ function GameView({ gameId, onBackToLobby }: GameViewProps) {
               backgroundColor: cell ? '#f0f0f0' : 'white',
               border: '2px solid #333',
               borderRadius: '8px',
-              cursor: cell || gameState.winner || loading ? 'not-allowed' : 'pointer',
+              cursor: cell || gameState.winner || loading || !isConnected ? 'not-allowed' : 'pointer',
               color: cell === 'X' ? '#ff6b6b' : cell === 'O' ? '#4ecdc4' : 'transparent',
               transition: 'all 0.2s ease',
               boxShadow: cell || gameState.winner || loading ? 'none' : '0 2px 4px rgba(0,0,0,0.1)'
             }}
-            disabled={cell !== null || gameState.winner !== null || loading}
+            disabled={cell !== null || gameState.winner !== null || loading || !isConnected}
             onMouseEnter={(e) => {
-              if (!cell && !gameState.winner && !loading) {
+              if (!cell && !gameState.winner && !loading && isConnected) {
                 e.currentTarget.style.backgroundColor = '#e8f5e8';
                 e.currentTarget.style.transform = 'scale(1.02)';
               }
             }}
             onMouseLeave={(e) => {
-              if (!cell && !gameState.winner && !loading) {
+              if (!cell && !gameState.winner && !loading && isConnected) {
                 e.currentTarget.style.backgroundColor = 'white';
                 e.currentTarget.style.transform = 'scale(1)';
               }
@@ -201,24 +266,24 @@ function GameView({ gameId, onBackToLobby }: GameViewProps) {
       <div style={{ marginTop: '30px' }}>
         <button
           onClick={resetGame}
-          disabled={loading}
+          disabled={loading || !isConnected}
           style={{
             padding: '12px 24px',
             fontSize: '16px',
             marginRight: '15px',
-            opacity: loading ? 0.6 : 1,
+            opacity: loading || !isConnected ? 0.6 : 1,
             backgroundColor: '#ff9800',
             color: 'white',
             border: 'none',
             borderRadius: '5px',
-            cursor: loading ? 'not-allowed' : 'pointer',
+            cursor: loading || !isConnected ? 'not-allowed' : 'pointer',
             transition: 'background-color 0.2s ease'
           }}
           onMouseEnter={(e) => {
-            if (!loading) e.currentTarget.style.backgroundColor = '#f57c00';
+            if (!loading && isConnected) e.currentTarget.style.backgroundColor = '#f57c00';
           }}
           onMouseLeave={(e) => {
-            if (!loading) e.currentTarget.style.backgroundColor = '#ff9800';
+            if (!loading && isConnected) e.currentTarget.style.backgroundColor = '#ff9800';
           }}
         >
           {loading ? 'Loading...' : 'Reset Game'}

@@ -1,11 +1,76 @@
 import express from 'express';
+import expressWs from 'express-ws';
 import { createGame, makeMove } from './tic-tac-toe.js';
 import type { GameState } from './tic-tac-toe.js';
+import type { Application } from 'express-ws';
+import type { WebSocket } from 'ws';
 
-export const app = express();
+const { app: expressApp } = expressWs(express());
+export const app = expressApp as Application;
 export const games = new Map<string, GameState>();
 
+// Store WebSocket connections per game
+const gameConnections = new Map<string, Set<WebSocket>>();
+
+// Helper function to broadcast game updates to all connected clients
+function broadcastGameUpdate(gameId: string, gameState: GameState) {
+  const connections = gameConnections.get(gameId);
+  if (connections) {
+    connections.forEach(ws => {
+      if (ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'gameUpdate',
+          gameState
+        }));
+      }
+    });
+  }
+}
+
 app.use(express.json());
+
+// WebSocket endpoint for game subscriptions
+app.ws('/api/games/:id/ws', (ws, req) => {
+  const gameId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+  // Check if game exists
+  if (!games.has(gameId)) {
+    ws.close(1008, 'Game not found');
+    return;
+  }
+
+  // Add connection to the game's connection set
+  if (!gameConnections.has(gameId)) {
+    gameConnections.set(gameId, new Set());
+  }
+  gameConnections.get(gameId)!.add(ws);
+
+  // Send current game state immediately upon connection
+  const gameState = games.get(gameId);
+  if (gameState) {
+    ws.send(JSON.stringify({
+      type: 'gameUpdate',
+      gameState
+    }));
+  }
+
+  // Handle client disconnect
+  ws.on('close', () => {
+    const connections = gameConnections.get(gameId);
+    if (connections) {
+      connections.delete(ws);
+      // Clean up empty connection sets
+      if (connections.size === 0) {
+        gameConnections.delete(gameId);
+      }
+    }
+  });
+
+  // Handle client errors
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+  });
+});
 
 // Create a new game
 app.post('/api/games', (_req, res) => {
@@ -16,7 +81,7 @@ app.post('/api/games', (_req, res) => {
 
 // Get a specific game
 app.get('/api/games/:id', (req, res) => {
-  const gameId = req.params.id;
+  const gameId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const gameState = games.get(gameId);
 
   if (!gameState) {
@@ -29,7 +94,7 @@ app.get('/api/games/:id', (req, res) => {
 // Make a move in a specific game
 app.post('/api/games/:id/move', (req, res) => {
   try {
-    const gameId = req.params.id;
+    const gameId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const { position } = req.body;
 
     const gameState = games.get(gameId);
@@ -48,6 +113,9 @@ app.post('/api/games/:id/move', (req, res) => {
     const updatedGameState = makeMove(gameState, position);
     games.set(gameId, updatedGameState);
 
+    // Broadcast the update to all connected clients
+    broadcastGameUpdate(gameId, updatedGameState);
+
     res.json(updatedGameState);
   } catch (error) {
     res.status(400).json({
@@ -58,7 +126,7 @@ app.post('/api/games/:id/move', (req, res) => {
 
 // Reset a specific game
 app.post('/api/games/:id/reset', (req, res) => {
-  const gameId = req.params.id;
+  const gameId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
   if (!games.has(gameId)) {
     return res.status(404).json({ error: 'Game not found' });
@@ -68,6 +136,9 @@ app.post('/api/games/:id/reset', (req, res) => {
   // Keep the same ID for reset
   newGameState.id = gameId;
   games.set(gameId, newGameState);
+
+  // Broadcast the update to all connected clients
+  broadcastGameUpdate(gameId, newGameState);
 
   res.json(newGameState);
 });
@@ -80,7 +151,7 @@ app.get('/api/games', (_req, res) => {
 
 // Delete a specific game
 app.delete('/api/games/:id', (req, res) => {
-  const gameId = req.params.id;
+  const gameId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
   if (!games.has(gameId)) {
     return res.status(404).json({ error: 'Game not found' });
