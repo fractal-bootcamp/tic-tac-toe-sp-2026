@@ -29,23 +29,32 @@ export function createServer() {
         res.json(newGame)
     })
 
-    app.get("/game", (req, res) => {
-        const gameId = req.query.id as string
+    app.get("/game/:id", (req, res) => {
+        const gameId = req.params.id as string
         if (!games.has(gameId)) {
+            res.status(404)
             throw new Error(`Game with ID ${gameId} doesn't exist!`)
         }
         res.json(games.get(gameId))
     })
 
-
-    app.post("/move", (req, res) => {
-        const gameId = req.query.id as string
+    app.post("/move/:id", (req, res) => {
+        const gameId = req.params.id as string
+        console.log('body:', req.body)
+        if (req.body?.mainIndex === undefined || req.body?.subIndex === undefined) {
+            res.status(400)
+            res.send('Missing mainIndex or subIndex!')
+            return
+        }
         const { mainIndex, subIndex } = req.body
         if (!games.has(gameId)) {
-            throw new Error(`Game with ID ${gameId} doesn't exist!`)
+            res.status(404)
+            res.send(`Game with ID ${gameId} doesn't exist!`)
+            return
         }
         const game = games.get(gameId) as GameState
         const gameState = makeMove(game, mainIndex, subIndex)
+        games.set(gameId, gameState)
         res.json(gameState)
     })
 
