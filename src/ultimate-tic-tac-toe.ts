@@ -90,4 +90,8 @@ export function getGameWinner(state: GameState): Player | null | typeof TIE {
   return getWinner(state.board, (_, index) => getSubGameWinner(state, index))
 }
 
+export function isWinnerTie(winner: Player | null | typeof TIE) {
+  return winner !== null && winner !== Player.X && winner !== Player.O
+}
+
 
