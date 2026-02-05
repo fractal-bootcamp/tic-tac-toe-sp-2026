@@ -1,25 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  createGame,
-  makeMove,
   getWinner,
   type CellIndex,
   type GameState,
+  createGame,
 } from "./tic-tac-toe";
 import "./App.css";
 
 function App() {
-  let [gameState, setGameState] = useState(getInitialGame());
+  const [gameState, setGameState] = useState(createGame()); // Start with null
 
-  function handleCellClick(cellIndex: CellIndex) {
-    const newGameState = makeMove(gameState, cellIndex);
-    setGameState(newGameState);
+  async function createNewGame() {
+    try {
+      const res = await fetch("/api/createNewGame", {
+        method: "POST",
+      });
+      const json = await res.json();
+      setGameState(json);
+      console.log("creatednewgame");
+    } catch (err) {
+      console.error(err);
+    }
   }
+
+  async function move(index: CellIndex) {
+    try {
+      const res = await fetch("/api/move", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          index: index,
+        }),
+      });
+      const json = await res.json();
+      setGameState(json);
+      console.log("moved player");
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    console.log("creating new game!");
+    console.log(gameState);
+    createNewGame();
+  }, []);
 
   function IndividualCell(props: { index: CellIndex }) {
     return (
       <button
-        onClick={() => handleCellClick(props.index)}
+        onClick={() => move(props.index)}
         style={{
           width: "100%",
           aspectRatio: 1,
@@ -45,65 +77,61 @@ function App() {
   }
 
   function WinnerDisplay() {
-    let winner = getWinner(gameState);
-    if (winner !== null) {
-      return <h1>{winner} Wins!!!!</h1>;
+    if (gameState.winner !== null) {
+      return <h1>{gameState.winner} Wins!!!!</h1>;
     } else {
       return <h1></h1>;
     }
   }
 
-  // TODO: display the gameState, and call `makeMove` when a player clicks a button
-  return (
-    <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "column",
-        }}
-      >
-        <h1> Tic, Tac, Toe</h1>
-        <br />
-        current player: {gameState.currentPlayer}
-        <br />
-      </div>
-      <div
-        style={{
-          display: "grid",
-          width: "100%",
-          gap: "0px",
-          margin: "o auto",
-          padding: "0px",
-          justifyContent: "center",
-          alignItems: "center",
-          maxWidth: "min(500px,80vh)",
-          margin: "0 auto",
-          gridTemplateColumns: "repeat(3,1fr)",
-        }}
-      >
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-          <IndividualCell key={i} index={i as CellIndex} />
-        ))}
-      </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "column",
-        }}
-      >
-        <WinnerDisplay />
-      </div>
-    </>
-  );
-}
-
-function getInitialGame() {
-  let initialGameState = createGame();
-  return initialGameState;
+  if (!gameState) {
+    return "Loading";
+  } else {
+    return (
+      <>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+          }}
+        >
+          <h1> Tic, Tac, Toe</h1>
+          <br />
+          current player: {gameState.currentPlayer}
+          <br />
+        </div>
+        <div
+          style={{
+            display: "grid",
+            width: "100%",
+            gap: "0px",
+            padding: "0px",
+            justifyContent: "center",
+            alignItems: "center",
+            maxWidth: "min(500px,80vh)",
+            margin: "0 auto",
+            gridTemplateColumns: "repeat(3,1fr)",
+          }}
+        >
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <IndividualCell key={i} index={i as CellIndex} />
+          ))}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+          }}
+        >
+          <WinnerDisplay />
+        </div>
+      </>
+    );
+  }
 }
 
 // Create a 'cell' component

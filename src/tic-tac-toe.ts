@@ -14,6 +14,7 @@ export type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell];
 export type GameState = {
   board: Board;
   currentPlayer: Player;
+  winner: Player | null;
 };
 
 export type CellIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 6 | 7 | 8;
@@ -22,6 +23,7 @@ export function createGame(): GameState {
   return {
     board: [null, null, null, null, null, null, null, null, null],
     currentPlayer: "X",
+    winner: null,
   };
 }
 
@@ -36,15 +38,11 @@ export const winLines: [number, number, number][] = [
   [2, 4, 6],
 ];
 
-export function getWinner(state: GameState): Player | null {
+export function getWinner(board: Board): Player | null {
   for (const [a, b, c] of winLines) {
-    let potentialWinner = state.board[a];
+    let potentialWinner = board[a];
 
-    if (
-      state.board[a] != null &&
-      state.board[a] === state.board[b] &&
-      state.board[b] === state.board[c]
-    )
+    if (board[a] != null && board[a] === board[b] && board[b] === board[c])
       return potentialWinner;
   }
 
@@ -70,6 +68,7 @@ export function makeMove(state: GameState, position: CellIndex): GameState {
 
   const newBoard = [...state.board] as Board;
   newBoard[position] = state.currentPlayer;
+  const newWinner = getWinner(newBoard);
 
   let nextPlayer: Player;
 
@@ -82,5 +81,6 @@ export function makeMove(state: GameState, position: CellIndex): GameState {
   return {
     board: newBoard,
     currentPlayer: nextPlayer,
+    winner: newWinner,
   };
 }
