@@ -26,8 +26,6 @@ const reversePlayer = () => {
 
 const checkWinner = () => {
 
-  console.log('checking winner!')
-
   const origPlayer = reversePlayer()
 
   const win = origPlayer.repeat(3)
@@ -130,7 +128,7 @@ app.post('/newGame', async (req: Request, res: Response) => {
   res.json(gameState)
 })
 
-const PORT = 3000
+const PORT = 5173
 
 ViteExpress.listen(app, PORT, () => {
   console.log(`server is running on port ${PORT} `)
