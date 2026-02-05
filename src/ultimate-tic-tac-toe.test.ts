@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import { createGame, makeMove, Player, type GameState } from "./ultimate-tic-tac-toe";
 import { randomInt } from "crypto";
 import exampleGames from './example-games.json'
@@ -50,6 +50,18 @@ describe('make move', () => {
         
         expect(gameWhereXWins).toEqual(move)
     })
+
+    test('should update property updateTimestamp', () => {
+        const spy = vi.spyOn(Date, 'now')
+        spy.mockReturnValueOnce(1000)
+        spy.mockReturnValueOnce(2000)
+
+        let game = createGame()
+        const originalUpdated = game.updatedTimestamp
+        game = makeMove(game, 0, 0)
+        expect(originalUpdated).not.toEqual(game.updatedTimestamp)
+
+        spy.mockRestore()
+    })
 })
 
-// describe('get winner')

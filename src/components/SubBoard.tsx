@@ -1,4 +1,4 @@
-import { type GameState, getSubGameWinner, Player, TIE } from "../ultimate-tic-tac-toe"
+import { type GameState, getSubGameWinner, isWinnerTie, Player, TIE } from "../ultimate-tic-tac-toe"
 import { getTTTBordersByIndex } from "../utils/styling"
 
 type SubBoardProps = {
@@ -8,9 +8,6 @@ type SubBoardProps = {
   highlighted: boolean
 }
 
-const isWinnerTie = (winner: Player | null | typeof TIE) => {
-  return winner !== null && winner !== Player.X && winner !== Player.O
-}
 
 export default function SubBoard({ gameState, mainIndex, makeMove, highlighted }: SubBoardProps) {
   const winner = getSubGameWinner(gameState, mainIndex)
