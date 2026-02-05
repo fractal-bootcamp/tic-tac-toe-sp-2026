@@ -34,10 +34,10 @@ function App() {
           onCellClick={(idx) => {
             if (winnerInfo?.winner) return;
 
-            // moveAPICall(idx).then((newState: GameState) => {
-            //   console.log("New state from server:", newState);
-            //   setGameState(newState);
-            // });
+            moveAPICall(idx).then((newState: GameState) => {
+              console.log("New state from server:", newState);
+              setGameState(newState);
+            });
           }}
           winningPositions={winnerInfo?.winningPositions}
         />
@@ -56,17 +56,17 @@ export async function fetchNewGame() {
   return data;
 }
 
-// async function moveAPICall(idx: number) {
-//   const response = await fetch("/move", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({ index: idx }),
-//   });
-//   const data = await response.json();
-//   return data;
-// }
+async function moveAPICall(idx: number) {
+  const response = await fetch("/move", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ index: idx }),
+  });
+  const data = await response.json();
+  return data;
+}
 
 export default App;
 
@@ -84,7 +84,7 @@ export async function newGameCall(): Promise<GameState> {
   return data;
 }
 
-export async function moveAPICall(uuid: UUID, idx: number) {
+export async function moveAPICall2(uuid: UUID, idx: number) {
   const resp = await fetch(`/move/${uuid}`, {
     method: "POST",
     headers: {

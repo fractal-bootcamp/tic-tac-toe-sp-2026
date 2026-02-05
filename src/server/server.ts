@@ -33,10 +33,23 @@ app.get("/game", (_, res) => {
   });
 });
 
+// WILL BE DEPRECATED SOON
+app.post("/move", (req, res) => {
+  const index = req.body.index as number;
+  // and then we update the game state on the server (refactor this, no need to assign back to itself)
+  serverGameState = makeMove(serverGameState, index);
+
+  // return new state and player
+  res.json({
+    board: serverGameState.board,
+    currentPlayer: serverGameState.currentPlayer,
+  });
+});
+
 /**
  * A player is making a move. Update the game state and return the new state.
  */
-app.post("/move:gameId", (req, res) => {
+app.post("/move/:gameId", (req, res) => {
   // in the POST request, we submit the index that the user clicks
 
   const index = req.body.index as number;
