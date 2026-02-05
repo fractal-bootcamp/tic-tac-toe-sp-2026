@@ -1,0 +1,10 @@
+POST http://localhost:5050/api/move/b60d12db-b835-425b-9540-f8b0f741fa97
+Content-Type: application/json
+
+{
+  "gState": {
+    "board": [null,null,null,null,"X",null,null,null,null],
+    "currentPlayer": "O"
+  },
+  "index": 5
+}

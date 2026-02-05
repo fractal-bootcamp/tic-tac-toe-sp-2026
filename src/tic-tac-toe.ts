@@ -1,16 +1,24 @@
 export type Player = "X" | "O";
 export type Cell = Player | null;
 export type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell];
+export type GameId = string;
+export type Winner = Player | null;
 
 export type GameState = {
   board: Board;
   currentPlayer: Player;
+  id: GameId;
+  winner: Winner;
 };
 
-export function createGame(): GameState {
+// export const createDatabase = (): GameDatabase => new Map();
+
+export function createGame(id: string = crypto.randomUUID()): GameState {
   return {
     board: [null, null, null, null, null, null, null, null, null],
     currentPlayer: "X",
+    id,
+    winner: null,
   };
 }
 
@@ -52,5 +60,7 @@ export function makeMove(state: GameState, position: number): GameState {
   return {
     board: newBoard,
     currentPlayer: state.currentPlayer === "X" ? "O" : "X",
+    id: state.id,
+    winner: state.winner,
   };
 }
