@@ -45,12 +45,14 @@ function App() {
                   fontSize: "80px",
                  }}
                 onClick={() => {
-                  if (gameState.board[position] === null) {
+                  if (gameState.board[position] === null && !getWinner(gameState)) {
                     fetch("/move", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ position }),
                     })
+                      .then((res) => res.json())
+                      .then((data) => setGameState(data));
                   }
                 }}
               >
@@ -70,7 +72,11 @@ function App() {
         margin: "40px"
         }}
       
-      onClick={() => setGameState(createGame())}>Play Again!</button>
+      onClick={() => {
+        fetch("/reset", { method: "POST" })
+          .then((res) => res.json())
+          .then((data) => setGameState(data));
+      }}>Play Again!</button>
       }
     </div>;
 }
