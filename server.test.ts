@@ -14,8 +14,8 @@ describe("createGame", () => {
         const response = await request(app).post("/api/create").send()
         expect(response.status).toBe(201)
         expect(response.body.id).toBeDefined()
-        // expect(response.body.currentPlayer).toBe("X") 
-        // expect(response.body.board).toEqual([null, null, null, null, null, null, null, null, null])
+        // expect(response.body.currentPlayer).toBe("X") // not needed due to repeating game logic tests from TTT test
+        // expect(response.body.board).toEqual([null, null, null, null, null, null, null, null, null]) // not needed due to repeating game logic tests from TTT test
     })
     
     it("returns different id", async () => {
@@ -31,6 +31,17 @@ describe("createGame", () => {
 // describe("resetGame", () => {
 //     it("resets the same game")
 // })
+
+
+// ---------------------------------------------------------------------------
+// get game list
+// ---------------------------------------------------------------------------
+
+
+
+// ---------------------------------------------------------------------------
+// make move
+// ---------------------------------------------------------------------------
 
 
 // from TTT test file
