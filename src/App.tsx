@@ -3,7 +3,7 @@ import {
   type Winner,
   type GameState,
   type Player,
-  type StateAndWinner,
+  type winnerAndState,
 } from "./tic-tac-toe";
 import Grid from "./components/grid";
 import Message from "./components/topMessage";
@@ -22,7 +22,7 @@ function App() {
   const resetGame = async () => {
     setTopMessage(null);
     setWinner(null);
-    const newGame: StateAndWinner = await services.newGame();
+    const newGame: winnerAndState = await services.newGame();
     setGameState(newGame.gameState);
   };
 
@@ -39,6 +39,7 @@ function App() {
 
     setGameState(newState.gameState);
 
+    console.log("newState", newState);
     setWinner(newState.winner);
 
     if (newState.winner !== null) {
