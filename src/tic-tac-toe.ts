@@ -38,6 +38,8 @@ export function getWinner(state: GameState): Player | null {
 
   for (const [a, b, c] of winLines) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      console.log("getting winner");
+      console.log(board[a]);
       return board[a];
     }
   }
@@ -57,10 +59,17 @@ export function makeMove(state: GameState, position: number): GameState {
   const newBoard = [...state.board] as Board;
   newBoard[position] = state.currentPlayer;
 
-  return {
+  const potentialWinner = getWinner({
     board: newBoard,
     currentPlayer: state.currentPlayer === "X" ? "O" : "X",
     id: state.id,
     winner: state.winner,
+  });
+
+  return {
+    board: newBoard,
+    currentPlayer: state.currentPlayer === "X" ? "O" : "X",
+    id: state.id,
+    winner: potentialWinner,
   };
 }

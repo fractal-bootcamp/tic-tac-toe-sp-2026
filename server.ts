@@ -7,14 +7,17 @@ import type { GameState } from "./src/tic-tac-toe";
 export const app = express();
 app.use(express.json());
 
-let game: GameState = {
-  board: [null, null, null, null, null, null, null, null, null],
-  currentPlayer: "X",
-  id: crypto.randomUUID(),
-  winner: null,
-};
+// let game: GameState = {
+//   board: [null, null, null, null, null, null, null, null, null],
+//   currentPlayer: "X",
+//   id: crypto.randomUUID(),
+//   winner: null,
+// };
 
 export let games = new Map<string, GameState>();
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 // get api/list
 // newGame
@@ -31,11 +34,10 @@ app.post("/api/newgame", (_req, res) => {
 
 // get api/list
 app.get("/api/games", (_req, res) => {
-  res.json(Array.from(games.entries())); // [ [id, gameState], ... ]
-});
+  // res.json(Array.from(games.entries())); // [ [id, gameState], ... ]
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  res.json([...games.values()]);
+});
 
 app.get("/api/games/:id", (req, res) => {
   const { id } = req.params;
@@ -53,10 +55,10 @@ app.get("/api/games/:id", (req, res) => {
 });
 
 app.post("/api/games/:id/move", (req, res) => {
-  const { index } = req.body;
+  const { position } = req.body;
 
   // validate index
-  if (typeof index !== "number") {
+  if (typeof position !== "number") {
     return res.status(400).json({ error: "Position must be a number" });
   }
 
@@ -68,9 +70,10 @@ app.post("/api/games/:id/move", (req, res) => {
   }
 
   try {
-    const updatedGame = makeMove(game, index);
+    const updatedGame = makeMove(game, position);
 
-    games.set(id, updatedGame);
+    games.set(req.params.id, updatedGame);
+
     return res.json(updatedGame);
   } catch (err) {
     if (err instanceof Error) {
@@ -81,14 +84,44 @@ app.post("/api/games/:id/move", (req, res) => {
 });
 
 app.post("/api/games/:id/reset", (req, res) => {
-  game = {
+  const { id } = req.params;
+
+  // 1) must exist to "reset"
+  if (!games.has(id)) {
+    return res.status(404).json({ error: "Game not found" });
+  }
+
+  const gameReset: GameState = {
+    id,
     board: [null, null, null, null, null, null, null, null, null],
     currentPlayer: "X",
-    id: req.params.id,
     winner: null,
   };
-  res.json(game);
+
+  games.set(id, gameReset);
+
+  res.json(gameReset);
 });
+
+app.delete("/api/games/:id", (req, res) => {
+  const { id } = req.params;
+
+  const deleted = games.delete(id);
+
+  if (!deleted) {
+    return res.status(404).json({ error: "Game not found" });
+  }
+
+  res.sendStatus(204);
+});
+
+// describe.only("DELETE /api/games/:id", () => {
+//   it("should delete an existing game", async () => {
+//     const createResponse = await request(app)
+//       .post("/api/newgame")
+//       .expect(200);
+
+//     const gameId = createResponse.body.id;
 
 const PORT = 5050;
 

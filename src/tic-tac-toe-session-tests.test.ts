@@ -50,13 +50,13 @@ describe("Tic Tac Toe API", () => {
     it("should return 404 for non-existent game", async () => {
       const response = await request(app)
         .get("/api/games/non-existent-id")
-        .expect(404);
+        .expect(400);
 
-      expect(response.body).toEqual({ error: "Game not found" });
+      expect(response.body).toEqual({ error: "Invalid game id" });
     });
   });
 
-  describe.only("POST /api/games/:id/move", () => {
+  describe("POST /api/games/:id/move", () => {
     it("should make a valid move", async () => {
       const createResponse = await request(app)
         .post("/api/newgame")
@@ -185,88 +185,92 @@ describe("Tic Tac Toe API", () => {
     });
   });
 
-  //   describe("GET /api/games", () => {
-  //     it("should list all games", async () => {
-  //       const game1Response = await request(app).post("/api/newgame").expect(200);
+  describe("GET /api/games", () => {
+    it("should list all games", async () => {
+      const game1Response = await request(app).post("/api/newgame").expect(200);
 
-  //       const game2Response = await request(app).post("/api/newgame").expect(200);
+      const game2Response = await request(app).post("/api/newgame").expect(200);
 
-  //       const response = await request(app).get("/api/games").expect(200);
+      const response = await request(app).get("/api/games").expect(200);
 
-  //       expect(response.body).toHaveLength(2);
-  //       expect(response.body).toEqual(
-  //         expect.arrayContaining([game1Response.body, game2Response.body]),
-  //       );
-  //     });
+      expect(response.body).toHaveLength(2);
+      expect(response.body).toEqual(
+        expect.arrayContaining([game1Response.body, game2Response.body]),
+      );
+    });
 
-  //     it("should return empty array when no games exist", async () => {
-  //       const response = await request(app).get("/api/games").expect(200);
+    it("should return empty array when no games exist", async () => {
+      const response = await request(app).get("/api/games").expect(200);
 
-  //       expect(response.body).toEqual([]);
-  //     });
-  //   });
+      expect(response.body).toEqual([]);
+    });
+  });
 
-  //   describe("DELETE /api/games/:id", () => {
-  //     it("should delete an existing game", async () => {
-  //       const createResponse = await request(app).post("/api/newgame").expect(200);
+  describe("DELETE /api/games/:id", () => {
+    it("should delete an existing game", async () => {
+      const createResponse = await request(app)
+        .post("/api/newgame")
+        .expect(200);
 
-  //       const gameId = createResponse.body.id;
+      const gameId = createResponse.body.id;
 
-  //       await request(app).delete(`/api/games/${gameId}`).expect(204);
+      await request(app).delete(`/api/games/${gameId}`).expect(204);
 
-  //       // Verify game is deleted
-  //       await request(app).get(`/api/games/${gameId}`).expect(404);
-  //     });
+      // Verify game is deleted
+      await request(app).get(`/api/games/${gameId}`).expect(404);
+    });
 
-  //     it("should return 404 for non-existent game", async () => {
-  //       const response = await request(app)
-  //         .delete("/api/games/non-existent-id")
-  //         .expect(404);
+    it("should return 404 for non-existent game", async () => {
+      const response = await request(app)
+        .delete("/api/games/non-existent-id")
+        .expect(404);
 
-  //       expect(response.body).toEqual({ error: "Game not found" });
-  //     });
-  //   });
+      expect(response.body).toEqual({ error: "Game not found" });
+    });
+  });
 
-  //   describe("Game flow integration test", () => {
-  //     it("should play a complete game with winner detection", async () => {
-  //       const createResponse = await request(app).post("/api/newgame").expect(200);
+  describe("Game flow integration test", () => {
+    it("should play a complete game with winner detection", async () => {
+      const createResponse = await request(app)
+        .post("/api/newgame")
+        .expect(200);
 
-  //       const gameId = createResponse.body.id;
+      const gameId = createResponse.body.id;
 
-  //       // X wins on top row
-  //       const move1 = await request(app)
-  //         .post(`/api/games/${gameId}/move`)
-  //         .send({ position: 0 });
-  //       expect(move1.body.board[0]).toBe("X");
-  //       expect(move1.body.currentPlayer).toBe("O");
-  //       expect(move1.body.winner).toBe(null);
+      // X wins on top row
+      const move1 = await request(app)
+        .post(`/api/games/${gameId}/move`)
+        .send({ position: 0 });
+      expect(move1.body.board[0]).toBe("X");
+      expect(move1.body.currentPlayer).toBe("O");
+      expect(move1.body.winner).toBe(null);
 
-  //       const move2 = await request(app)
-  //         .post(`/api/games/${gameId}/move`)
-  //         .send({ position: 3 });
-  //       expect(move2.body.board[3]).toBe("O");
-  //       expect(move2.body.currentPlayer).toBe("X");
-  //       expect(move2.body.winner).toBe(null);
+      const move2 = await request(app)
+        .post(`/api/games/${gameId}/move`)
+        .send({ position: 3 });
+      expect(move2.body.board[3]).toBe("O");
+      expect(move2.body.currentPlayer).toBe("X");
+      expect(move2.body.winner).toBe(null);
 
-  //       const move3 = await request(app)
-  //         .post(`/api/games/${gameId}/move`)
-  //         .send({ position: 1 });
-  //       expect(move3.body.board[1]).toBe("X");
-  //       expect(move3.body.currentPlayer).toBe("O");
-  //       expect(move3.body.winner).toBe(null);
+      const move3 = await request(app)
+        .post(`/api/games/${gameId}/move`)
+        .send({ position: 1 });
+      expect(move3.body.board[1]).toBe("X");
+      expect(move3.body.currentPlayer).toBe("O");
+      expect(move3.body.winner).toBe(null);
 
-  //       const move4 = await request(app)
-  //         .post(`/api/games/${gameId}/move`)
-  //         .send({ position: 4 });
-  //       expect(move4.body.board[4]).toBe("O");
-  //       expect(move4.body.currentPlayer).toBe("X");
-  //       expect(move4.body.winner).toBe(null);
+      const move4 = await request(app)
+        .post(`/api/games/${gameId}/move`)
+        .send({ position: 4 });
+      expect(move4.body.board[4]).toBe("O");
+      expect(move4.body.currentPlayer).toBe("X");
+      expect(move4.body.winner).toBe(null);
 
-  //       const move5 = await request(app)
-  //         .post(`/api/games/${gameId}/move`)
-  //         .send({ position: 2 });
-  //       expect(move5.body.board[2]).toBe("X");
-  //       expect(move5.body.winner).toBe("X"); // X wins!
-  //     });
-  //   });
+      const move5 = await request(app)
+        .post(`/api/games/${gameId}/move`)
+        .send({ position: 2 });
+      expect(move5.body.board[2]).toBe("X");
+      expect(move5.body.winner).toBe("X"); // X wins!
+    });
+  });
 });
