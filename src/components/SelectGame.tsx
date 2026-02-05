@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { GameState } from "../ultimate-tic-tac-toe"
 import GameThumbnail from "./GameThumbnail"
+import { timestampToLocalDateTime } from "../utils/date"
 
 
 type SelectGameProps = {
@@ -16,7 +17,7 @@ export default function SelectGame({ setSelectedGameId }: SelectGameProps) {
       .then(res => res.json())
       .then(games => {
         const gamesList = Object.values<GameState>(games)
-        setGames(gamesList)
+        setGames(gamesList.sort((a,b) => (b.createdTimestamp-a.createdTimestamp)))
       })
   }, [])
 
@@ -50,7 +51,12 @@ export default function SelectGame({ setSelectedGameId }: SelectGameProps) {
                 backgroundColor: 'rgba(255, 255, 255, 0.2)',
                 zIndex: '4'
               }}></div>
-              <div style={{ fontSize: '0.5rem' }}>{game.id}</div>
+              <div style={{
+                fontSize: '0.75rem',
+                textAlign: 'center'
+              }}>
+                {timestampToLocalDateTime(game.createdTimestamp)}
+              </div>
               <GameThumbnail gameState={game} />
             </div>
           </>
