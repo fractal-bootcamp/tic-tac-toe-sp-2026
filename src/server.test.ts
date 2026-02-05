@@ -10,13 +10,13 @@ beforeEach(() => {
 })
 
 describe('/health', () => {
-  it('should return ok', async () => {
-    const response = await request(app)
-      .get('/health')
-    
-    expect(response.status).toBe(200);
-    expect(response.text).toEqual('ok');
-  });
+    it('should return ok', async () => {
+        const response = await request(app)
+            .get('/health')
+
+        expect(response.status).toBe(200);
+        expect(response.text).toEqual('ok');
+    });
 });
 
 describe('/games', () => {
@@ -50,5 +50,56 @@ describe('/create', () => {
             .get('/games')
 
         expect(Object.keys(games.body).length).toBe(1)
+    })
+})
+
+describe('/game', () => {
+    it('should return correct game when given id', async () => {
+        const createResponse = await request(app).get('/create')
+        const newGame = createResponse.body
+        const gameResponse = await request(app).get(`/game/${newGame.id}`)
+        const existingGame = gameResponse.body
+
+        expect(newGame).toEqual(existingGame)
+        expect(gameResponse.status).toBe(200)
+    })
+
+    it('should return 404 when game not found', async () => {
+        const gameResponse = await request(app).get(`/game/1`)
+
+        expect(gameResponse.status).toBe(404)
+    })
+
+    it('should return 404 when missing id', async () => {
+        await request(app).get(`/game`).expect(404)
+    })
+})
+
+describe('/move', () => {
+    it('should make move when given game id and correct parameters', async () => {
+        const createResponse = await request(app).get('/create')
+        const newGame = createResponse.body
+        const moveResponse = await request(app)
+            .post(`/move/${newGame.id}`)
+            .send({ mainIndex: 0, subIndex: 0 })
+            .expect(200)
+        const move = moveResponse.body
+        expect(move.board[0][0]).toBe(Player.X)
+        expect(move.currentPlayer).toBe(Player.O)
+    })
+
+    it('should return 404 when game not found', async () => {
+        await request(app)
+            .post(`/move/1`)
+            .send({ mainIndex: 0, subIndex: 0 })
+            .expect(404)
+    })
+
+    it('should return 400 when missing mainIndex or subIndex', async () => {
+        const createResponse = await request(app).get('/create')
+        const newGame = createResponse.body
+        await request(app)
+            .post(`/move/${newGame.id}`)
+            .expect(400)
     })
 })
