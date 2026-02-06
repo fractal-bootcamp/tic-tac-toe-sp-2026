@@ -17,8 +17,6 @@ export default function GameView({
   onBackToLobby,
   onGameUpdate,
 }: GameViewProps) {
-  // open websocket
-
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -26,23 +24,18 @@ export default function GameView({
   onGameUpdateRef.current = onGameUpdate;
 
   const connect = () => {
-    console.log("conenc");
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/api/games/${currentGame.id}/ws`;
     const ws = new WebSocket(wsUrl);
-    // const ws = new WebSocket(wsUrl);
-    console.log(ws);
     wsRef.current = ws;
+
     ws.onopen = () => {
       setIsConnected(true);
     };
 
     ws.onmessage = (event) => {
       try {
-        // console.log("move");
-        // console.log(err)
         const data = JSON.parse(event.data);
-        // console.log(data);
 
         if (
           data &&
@@ -51,32 +44,16 @@ export default function GameView({
           "id" in data &&
           "winner" in data
         ) {
-          // data is typed as GameState
-          // console.log("datafrom move");
-          // console.log(data);
           onGameUpdateRef.current(data);
         }
       } catch {
-        // console.log("error");
+        throw Error;
       }
     };
 
-    ws.onclose = () => {
-      // setIsConnected(false)
-      // setMessages(prev => [...prev, {
-      //   type: 'system',
-      //   text: 'Disconnected from server'
-      // }])
-      console.log("close");
-    };
+    ws.onclose = () => {};
 
-    ws.onerror = () => {
-      // setMessages(prev => [...prev, {
-      //   type: 'system',
-      //   text: 'Connection error'
-      // }])
-      console.log("error");
-    };
+    ws.onerror = () => {};
   };
 
   useEffect(() => {
@@ -88,7 +65,7 @@ export default function GameView({
     };
   }, []);
 
-  if (!currentGame) return <div>Loading game…</div>;
+  if (!currentGame) return <div>Loading game...</div>;
 
   return (
     <div>
@@ -111,7 +88,6 @@ export default function GameView({
                           : undefined
                       }
                     >
-                      {" "}
                       {cell ?? ""}
                     </td>
                   );
@@ -127,8 +103,6 @@ export default function GameView({
       </div>
       {errorMessage && <div className="error-message">{errorMessage}</div>}
       <br />
-      {/* <button onClick={() => onBackToLobby()}>back to lobby</button> */}
-
       <button
         onClick={() => {
           wsRef.current?.close();

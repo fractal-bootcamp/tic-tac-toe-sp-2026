@@ -81,15 +81,12 @@ function App() {
 
   const handleGameSelect = (id: string) => {
     setCurrentGameId(id);
-    // setSelectedGameId(id);
-
     setCurrentGame(gameList.find((g) => g.id === id) ?? null);
-
     setView("game");
   };
+
   const handleBackToLobby = () => {
     setView("lobby");
-
     setCurrentGameId("");
     getGameList();
     setCurrentGame(null);
@@ -119,15 +116,11 @@ function App() {
     if (errorMessage) {
       const timer = setTimeout(() => {
         setErrorMessage(null);
-      }, 3000); // Match your animation duration
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
   }, [errorMessage]);
-
-  // useEffect(() => {
-
-  // }, [currentGame]);
 
   useEffect(() => {
     setCurrentGame(gameList.find((g) => g.id === currentGameId) ?? null);
@@ -137,7 +130,6 @@ function App() {
     getGameList();
   }, []);
 
-  // TODO: display the currentGame, and call `makeMove` when a player clicks a button
   return (
     <div>
       <div>Noughts & Crosses</div>
@@ -165,12 +157,5 @@ function App() {
     </div>
   );
 }
-
-// function getInitialGame() {
-//   let initialGameState = createGame();
-//   // initialGameState = makeMove(initialGameState, 3);
-//   // initialGameState = makeMove(initialGameState, 0);
-//   return initialGameState;
-// }
 
 export default App;

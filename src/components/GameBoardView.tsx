@@ -3,12 +3,6 @@ type GameBoardViewProps = {
 };
 
 export default function GameBoardView({ gameBoard }: GameBoardViewProps) {
-  // const [currentGame, setCurrentGame] = useState<GameState | null>(null);
-
-  // useEffect(() => {
-  //   setCurrentGame(games.find((g) => g.id === gameId) ?? null);
-  // }, [games, gameId]);
-
   return (
     <div className="gameBoard">
       {gameBoard.map((cell, index) => (

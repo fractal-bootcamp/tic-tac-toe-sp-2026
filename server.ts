@@ -1,25 +1,13 @@
-//e.g server.js
 import express from "express";
 import expressWs from "express-ws";
-
 import ViteExpress from "vite-express";
-
 import { makeMove, createGame } from "./src/tic-tac-toe";
 import type { GameState } from "./src/tic-tac-toe";
 import type WebSocket from "ws";
 
-// var expressWs = require("express-ws")(app);
-
-const { app } = expressWs(express());
+export const { app } = expressWs(express());
 
 app.use(express.json());
-
-// let game: GameState = {
-//   board: [null, null, null, null, null, null, null, null, null],
-//   currentPlayer: "X",
-//   id: crypto.randomUUID(),
-//   winner: null,
-// };
 
 export let games = new Map<string, GameState>();
 
@@ -28,23 +16,13 @@ let socketGames = new Map<string, Set<WebSocket>>();
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-// get api/list
-// newGame
-// /game - add which game
-// /move - add whcih game
-
-// newGaem
-
 app.post("/api/newgame", (_req, res) => {
   const newGameId = crypto.randomUUID();
   games.set(newGameId, createGame(newGameId));
   res.json(games.get(newGameId));
 });
 
-// get api/list
 app.get("/api/games", (_req, res) => {
-  // res.json(Array.from(games.entries())); // [ [id, gameState], ... ]
-
   res.json([...games.values()]);
 });
 
@@ -65,14 +43,13 @@ app.get("/api/games/:id", (req, res) => {
 
 app.post("/api/games/:id/move", (req, res) => {
   const { position } = req.body;
-  // validate index
+
   if (typeof position !== "number") {
     return res.status(400).json({ error: "Position must be a number" });
   }
 
   const game = games.get(req.params.id);
 
-  // guard against undefined
   if (!game) {
     return res.status(404).json({ error: "Game not found" });
   }
@@ -102,7 +79,6 @@ app.post("/api/games/:id/move", (req, res) => {
 app.post("/api/games/:id/reset", (req, res) => {
   const { id } = req.params;
 
-  // 1) must exist to "reset"
   if (!games.has(id)) {
     return res.status(404).json({ error: "Game not found" });
   }
@@ -131,11 +107,6 @@ app.delete("/api/games/:id", (req, res) => {
   res.sendStatus(204);
 });
 
-//gamesession socket
-//gamesession socket
-//gamesession socket
-//gamesession socket
-
 app.ws("/api/games/:id/ws", function (ws, req) {
   const gameId = req.params.id as string;
 
@@ -146,7 +117,6 @@ app.ws("/api/games/:id/ws", function (ws, req) {
   const clients = socketGames.get(gameId)!;
   clients.add(ws);
 
-  // Send welcome message
   ws.send(
     JSON.stringify({
       type: "system",
@@ -158,7 +128,6 @@ app.ws("/api/games/:id/ws", function (ws, req) {
     const msgStr = msg.toString();
     console.log("chat message:", msgStr);
 
-    // Broadcast to everyone except sender
     clients.forEach((client) => {
       if (client !== ws && client.readyState === 1) {
         client.send(msgStr);
@@ -173,11 +142,6 @@ app.ws("/api/games/:id/ws", function (ws, req) {
     }
   });
 });
-
-//gamesession socket
-//gamesession socket
-//gamesession socket
-//gamesession socket
 
 const PORT = 5050;
 
