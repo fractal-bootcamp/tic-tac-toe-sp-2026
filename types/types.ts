@@ -25,3 +25,5 @@ export type winnerAndState = {
 }
 
 export type Lobby = Map<string, winnerAndState>
+
+export type ShortLobby = Map<string, string>

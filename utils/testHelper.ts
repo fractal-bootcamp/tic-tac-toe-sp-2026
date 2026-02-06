@@ -17,7 +17,7 @@ export const game1: winnerAndState = {
 }
 
 export const game2: winnerAndState = {
-  name: "revenge tour",
+  name: "x vs o",
   gameState: gameStateHalf,
   winner: null
 }

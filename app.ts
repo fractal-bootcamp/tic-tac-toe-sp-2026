@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
-import type { Player, Cell, Board, GameState, Winner, winnerAndState, Lobby } from './types/types';
+import type { Player, Cell, Board, GameState, Winner, winnerAndState, Lobby, ShortLobby } from './types/types';
+import {game1, game2} from './utils/testHelper'
 
 const app = express()
 
@@ -8,6 +9,20 @@ app.use(express.json())
 
 app.use(cors({ origin: "http://localhost:5173" }))
 
+
+const lobby: Lobby = new Map([
+  ['1', game1],
+  ['2', game2]
+])
+
+const shortLobby = new Map([]) as ShortLobby
+
+
+for (const [key, value] of lobby) {
+  shortLobby.set(key, value.name)
+}
+
+console.log('lobby object', lobby)
 
 let WinnerAndState:winnerAndState = {
   gameState: {
@@ -57,8 +72,26 @@ const checkWinner = (newBoard: Board) => {
   return null;
 }
 
-app.get('/game', async (req: Request, res: Response) => {
-  res.json(WinnerAndState)
+app.get('/lobby', async (req: Request, res: Response) => {
+  const toObject = Object.fromEntries(shortLobby)
+  console.log('toArray, specific object', toObject['2'])
+  res.json(toObject)
+})
+
+app.get('/game/:id', async (req: Request, res: Response) => {
+  const id = req.params.id as string
+
+  const game = lobby.get(id)
+
+  //other error handling???
+  if (game === undefined) {
+    return res.status(400).json({error: 'Game does not exist'})
+  }
+  const toObject: winnerAndState = game
+
+  console.log('toObject', toObject)
+
+  res.json(toObject)
 })
 
 app.post('/game', async (req: Request, res: Response) => {
