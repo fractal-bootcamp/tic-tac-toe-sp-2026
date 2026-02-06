@@ -145,6 +145,12 @@ app.ws("/api/games/:id/ws", function (ws, req) {
 
 const PORT = 5050;
 
-ViteExpress.listen(app as any, PORT, () =>
-  console.log(`Server is listening on ${PORT}...`),
-);
+if (process.env.NODE_ENV === "production") {
+  ViteExpress.listen(app as any, PORT, () =>
+    console.log(`Server is listening on ${PORT}...`),
+  );
+} else {
+  app.listen(PORT, () =>
+    console.log(`Server is listening on ${PORT}...`),
+  );
+}
