@@ -5,6 +5,7 @@ import type { GameState } from "./ultimateTicTacToe"
 export enum RequestType {
     MOVE = 'move',
     JOIN = 'join',
+    LEAVE = 'leave'
 }
 
 
@@ -13,19 +14,24 @@ interface SocketRequestBase {
 }
 
 
-interface MoveRequest extends SocketRequestBase {
+export interface MoveRequest extends SocketRequestBase {
     type: RequestType.MOVE,
     gameId: string,
     mainIndex: number,
     subIndex: number
 }
 
-interface SubscribeRequest extends SocketRequestBase {
+export interface JoinRequest extends SocketRequestBase {
     type: RequestType.JOIN,
     gameId: string
 }
 
-export type SocketRequest = MoveRequest | SubscribeRequest
+export interface LeaveRequest extends SocketRequestBase {
+    type: RequestType.LEAVE,
+    gameId: string
+}
+
+export type SocketRequest = MoveRequest | JoinRequest | LeaveRequest
 
 // ------------- RESPONSE ----------------
 

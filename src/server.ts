@@ -23,6 +23,13 @@ export function createServer() {
     const connections = new Map<string, WebSocket>() // clientId : WebSocket
     const subscriptions = new Map<string, string[]>() // gameId : clientId[]
 
+    app.get('/debug', (_, res) => {
+        console.log('------------DEBUG----------------------------------------------------')
+        console.log('connections: ', connections.keys())
+        console.log('subscriptions: ', subscriptions)
+        res.send('ok')
+    })
+
     app.get("/health", (_, res) => {
         res.send('ok')
     })
@@ -83,6 +90,14 @@ export function createServer() {
                     subscriptions.set(gameId, subscribers)
                 }
                 subscribers.push(clientId)
+            }
+            else if (request.type === RequestType.LEAVE) {
+                subscriptions.forEach((subscribers) => {
+                    const index = subscribers.findIndex(subscriber => subscriber === clientId);
+                    if (index !== -1) {
+                        subscribers.splice(index, 1);
+                    }
+                })
             }
             else if (request.type === RequestType.MOVE) {
                 const gameId = request.gameId
