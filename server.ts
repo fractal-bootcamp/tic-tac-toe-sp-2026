@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import ViteExpress from "vite-express";
-import type { GameState } from "./src/tic-tac-toe";
-import { makeMove } from "./src/tic-tac-toe";
+import type { GameState } from "./src/tic-tac-toe"
+import { createGame, makeMove } from "./src/tic-tac-toe"
 
 const app = express();
 
@@ -55,7 +55,25 @@ app.post("/api/games", (req: Request, res: Response) => {
   };
 
   games.push(newGame);
-  res.status(201).json(newGame);
+  res.status(200).json(newGame);
+});
+
+// POST /create - Create a new game
+app.post("/create", (_req: Request, res: Response) => {
+  const id = crypto.randomUUID();
+  const newGame: GameState = {
+    id,
+    board: [null, null, null, null, null, null, null, null, null],
+    currentPlayer: "X"
+  };
+  gameStore[id] = newGame;
+  res.status(200).json(newGame);
+})
+
+ // GET /games - List all live games
+app.get("/games", (_req: Request, res: Response) => {
+  const allGames = Object.values(gameStore);
+  res.json(allGames);
 });
 
 // --- Live game API (for Lobby and game screen) ---
