@@ -69,6 +69,7 @@ app.get('/lobby', async (req: Request, res: Response) => {
   const toObject = Object.fromEntries(shortLobby)
   console.log('short lobby jsonified', toObject )
   console.log('specific lobby object', toObject[1])
+  console.log('type for key', typeof Object.keys(toObject)[1])
   res.json(toObject)
 })
 

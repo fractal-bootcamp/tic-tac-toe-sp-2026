@@ -1,69 +1,30 @@
 import { useState, useEffect } from "react";
-import {
-  type GameState,
-  type Player,
-  type winnerAndState,
-} from "../types/types";
-import Grid from "./components/grid";
-import Message from "./components/topMessage";
 import "./app.css";
 import services from "./services/index";
+import { type ShortLobbyReact } from "../types/types";
 
 function App() {
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [topMessage, setTopMessage] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<string>("lobby");
+  const [lobby, setLobby] = useState<ShortLobbyReact | null>(null);
 
   useEffect(() => {
-    services.getGame().then((r) => setGameState(r.gameState));
+    services.getLobby().then((r) => {
+      console.log("response object", r);
+      setLobby(r);
+    });
   }, []);
 
-  const resetGame = async () => {
-    setTopMessage(null);
-    const newGame: winnerAndState = await services.newGame();
-    setGameState(newGame.gameState);
+  console.log("short lobby", lobby);
+
+  const switchState = () => {
+    if (currentView === "lobby") setCurrentView("game");
+    else setCurrentView("lobby");
   };
 
-  const handleMove = async (player: Player, position: number) => {
-    if (gameState!.board[position] !== null) {
-      setTopMessage("error: position already taken");
-      setTimeout(() => {
-        setTopMessage(null);
-      }, 1000);
-      return;
-    }
-
-    const newState = await services.makeMove({ position, player });
-
-    setGameState(newState.gameState);
-
-    if (newState.winner !== null) {
-      setTopMessage(
-        newState.winner === "CATS"
-          ? `Cats game`
-          : `${newState.winner} won the game!`,
-      );
-      setTimeout(() => {
-        resetGame();
-      }, 1000);
-    }
-  };
-
-  // TODO: display the gameState, and call `makeMove` when a player clicks a button
   return (
     <div>
-      {gameState ? (
-        <div className="app">
-          <h1>Tic tac toe</h1>
-          {topMessage ? (
-            <Message msg={topMessage}></Message>
-          ) : (
-            <h3>current player: {gameState.currentPlayer}</h3>
-          )}
-          <Grid gameState={gameState} handleMove={handleMove}></Grid>
-        </div>
-      ) : (
-        <div> loading</div>
-      )}
+      {currentView === "lobby" ? <h1>Lobby</h1> : <h2> will be games later</h2>}
+      <button onClick={() => switchState()}> change state</button>
     </div>
   );
 }

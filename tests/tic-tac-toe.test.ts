@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, assert } from "vitest";
 import { type Lobby, type GameState, type winnerAndState } from "../types/types.ts";
-import { lobbyExample, gameStateEmpty, game1, game2, shortLobbyAfterRes } from '../utils/testHelper.ts'
+import { lobbyExample, gameStateEmpty, game1, game2, shortLobbyAfterRes, game2AfterClear } from '../utils/testHelper.ts'
 import app from '../app.ts'
 import supertest from 'supertest'
 const api = supertest(app)
@@ -377,6 +377,18 @@ describe('lobby tests', () => {
     const game10 = await api.get('/game/10');
 
     assert.deepStrictEqual(game10.body, { error: "Game does not exist" })
+  })
+
+  it.only('properly refreshes game', async () => {
+
+    const initialGame = await api.get('/game/2')
+
+    await api.post('/newGame/2')
+
+    const postGame = await api.get('/game/2')
+
+    assert.deepStrictEqual(initialGame.body, game2)
+    assert.deepStrictEqual(postGame.body, game2AfterClear)
   })
 
   it('delete game works', async () => {
