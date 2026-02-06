@@ -25,11 +25,6 @@ export default function GameView({
 
   return (
     <div>
-      <br />
-      <button onClick={() => onBackToLobby()}>back to lobby</button>
-      {currentGame.board}
-      {currentGame.winner}
-
       <table className="board">
         <tbody>
           {[0, 1, 2].map((row) => (
@@ -63,6 +58,8 @@ export default function GameView({
           : `game over! winner is: ${currentGame.winner}`}
       </div>
       {errorMessage && <div className="error-message">{errorMessage}</div>}
+      <br />
+      <button onClick={() => onBackToLobby()}>back to lobby</button>
     </div>
   );
 }

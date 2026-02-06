@@ -65,6 +65,52 @@ function App() {
     }
   };
 
+  const newGame = async () => {
+    try {
+      const response = await fetch(`/api/newgame`, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      getGameList();
+    } catch (error) {
+      console.error("failed to start game", error);
+    }
+  };
+
+  const deleteGame = async (id: string) => {
+    try {
+      const response = await fetch(`/api/games/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete game");
+      }
+
+      getGameList();
+    } catch (error) {
+      console.error("failed to start game", error);
+    }
+  };
+
+  const resetGame = async (id: string) => {
+    try {
+      const response = await fetch(`/api/games/${id}/reset`, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      getGameList();
+    } catch (error) {
+      console.error("failed to start game", error);
+    }
+  };
+
   const handleGameSelect = (id: string) => {
     setCurrentGameId(id);
     // setSelectedGameId(id);
@@ -131,8 +177,15 @@ function App() {
     <div>
       <div>Noughts & Crosses</div>
       <div></div>
+
       {view === "lobby" ? (
-        <GameList games={gameList} onGameSelect={handleGameSelect} />
+        <GameList
+          games={gameList}
+          newGame={newGame}
+          deleteGame={deleteGame}
+          resetGame={resetGame}
+          onGameSelect={handleGameSelect}
+        />
       ) : null}
 
       {currentGame ? (
