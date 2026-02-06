@@ -76,3 +76,11 @@ body {
     transform: translateY(-10px);
   }
 }
+
+.gameOption {
+  background: red;
+  padding: 10px;
+  margin: 10px auto;
+  width: 300px;
+  cursor: pointer;
+}

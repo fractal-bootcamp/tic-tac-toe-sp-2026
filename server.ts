@@ -55,7 +55,10 @@ app.get("/api/games/:id", (req, res) => {
 });
 
 app.post("/api/games/:id/move", (req, res) => {
+  console.log("making move!");
   const { position } = req.body;
+
+  console.log(position);
 
   // validate index
   if (typeof position !== "number") {

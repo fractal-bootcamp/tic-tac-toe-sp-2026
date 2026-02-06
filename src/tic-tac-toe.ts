@@ -38,8 +38,6 @@ export function getWinner(state: GameState): Player | null {
 
   for (const [a, b, c] of winLines) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      console.log("getting winner");
-      console.log(board[a]);
       return board[a];
     }
   }

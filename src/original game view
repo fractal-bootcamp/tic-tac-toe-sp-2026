@@ -1,0 +1,21 @@
+<table className="board">
+  <tbody>
+    {[0, 1, 2].map((row) => (
+      <tr key={row}>
+        {gameState.board.slice(row * 3, row * 3 + 3).map((cell, colIndex) => {
+          const index = row * 3 + colIndex;
+          return (
+            <td
+              key={index}
+              className={cell ? "filled" : ""}
+              onClick={() => makeMove(gameState, index)}
+            >
+              {" "}
+              {cell ?? ""}
+            </td>
+          );
+        })}
+      </tr>
+    ))}
+  </tbody>
+</table>;

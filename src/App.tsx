@@ -3,54 +3,93 @@ import { createGame, getWinner } from "./tic-tac-toe";
 import type { GameState } from "./tic-tac-toe";
 import "./Cell.css";
 
+import GameView from "./components/GameView";
+import GameList from "./components/GameList";
+
 function App() {
   const [gameState, setGameState] = useState(getInitialGame());
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [gameList, setGameList] = useState<GameState[]>([]);
 
-  const restartGame = async () => {
-    try {
-      const response = await fetch("/api/restart", {
-        method: "POST",
-      });
+  const [currentGame, setCurrentGame] = useState<GameState | null>(null);
 
-      const data = await response.json();
-      setGameState(data);
-    } catch (error) {
-      console.error("Failed to make move:", error);
-    }
-  };
+  const [currentGameId, setCurrentGameId] = useState("");
 
-  const getGameState = async () => {
-    const response = await fetch("/api/game");
+  const [view, setView] = useState("lobby");
+  // const [selectedGameId, setSelectedGameId] = useState("");
+
+  // const restartGame = async () => {
+  //   try {
+  //     const response = await fetch("/api/restart", {
+  //       method: "POST",
+  //     });
+  //     const data = await response.json();
+  //     setGameState(data);
+  //   } catch (error) {
+  //     console.error("Failed to make move:", error);
+  //   }
+  // };
+
+  // const getGame = async (id: string) => {
+  //   try {
+  //     const response = await fetch(`/api/games/${id}`);
+
+  //     const data = await response.json();
+  //     setGameState(data);
+  //   } catch (error) {
+  //     console.error("Failed to make move:", error);
+  //   }
+  // };
+
+  const getGameList = async () => {
+    const response = await fetch("/api/games");
     const data = await response.json();
-    // !gameState.board.includes(null) ? restartGame() : setGameState(data);
-    setGameState(data);
+    setGameList(data);
   };
 
-  const makeMove = async (gState: GameState, index: number) => {
+  const makeMove = async (gState: GameState, position: number) => {
     try {
-      const response = await fetch("/api/move", {
+      const response = await fetch(`/api/games/${gState.id}/move`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ gState, index }),
+        body: JSON.stringify({ position }),
       });
 
       const data = await response.json();
+      // console.log(data);
       setGameState(data);
     } catch (error) {
       console.error("Failed to make move:", error);
     }
   };
 
+  const handleGameSelect = (id: string) => {
+    setCurrentGameId(id);
+    // setSelectedGameId(id);
+
+    setCurrentGame(gameList.find((g) => g.id === id) ?? null);
+
+    setView("game");
+  };
+  const handleBackToLobby = () => {
+    setView("lobby");
+
+    setCurrentGameId("");
+    getGameList();
+    setCurrentGame(null);
+  };
+
   useEffect(() => {
+    setCurrentGame(gameState);
+
     const winner = getWinner(gameState);
 
     // no winner, draw
     if (!winner && !gameState.board.includes(null)) {
       setErrorMessage("draw!");
-      restartGame();
+      // restartGame();
       return;
     }
 
@@ -60,7 +99,7 @@ function App() {
     // winner
     if (winner) {
       setErrorMessage(`${winner} wins!`);
-      restartGame();
+      // restartGame();
       return;
     }
   }, [gameState]);
@@ -75,43 +114,35 @@ function App() {
     }
   }, [errorMessage]);
 
+  // useEffect(() => {
+
+  // }, [gameState]);
+
   useEffect(() => {
-    getGameState();
+    setCurrentGame(gameList.find((g) => g.id === currentGameId) ?? null);
+  }, [currentGameId]);
+
+  useEffect(() => {
+    getGameList();
   }, []);
 
   // TODO: display the gameState, and call `makeMove` when a player clicks a button
   return (
     <div>
       <div>Noughts & Crosses</div>
-      <table className="board">
-        <tbody>
-          {[0, 1, 2].map((row) => (
-            <tr key={row}>
-              {gameState.board
-                .slice(row * 3, row * 3 + 3)
-                .map((cell, colIndex) => {
-                  const index = row * 3 + colIndex;
-                  return (
-                    <td
-                      key={index}
-                      className={cell ? "filled" : ""}
-                      onClick={() => makeMove(gameState, index)}
-                    >
-                      {" "}
-                      {cell ?? ""}
-                    </td>
-                  );
-                })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div>current player: {gameState.currentPlayer}</div>
       <div></div>
+      {view === "lobby" ? (
+        <GameList games={gameList} onGameSelect={handleGameSelect} />
+      ) : null}
 
-      {errorMessage ?? (
-        <div className={errorMessage ?? "error-message"}>{errorMessage}</div>
-      )}
+      {currentGame ? (
+        <GameView
+          currentGame={currentGame}
+          makeMove={makeMove}
+          errorMessage={errorMessage}
+          onBackToLobby={handleBackToLobby}
+        />
+      ) : null}
     </div>
   );
 }
