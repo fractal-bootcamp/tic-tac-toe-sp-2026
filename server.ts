@@ -16,7 +16,7 @@ export const gameStates = new Map<UUID, GameState>([
 ]);
 
 app.get("/api/games", (req, res) => {
-  const gamesList = Array.from(gameStates.entries());
+  const gamesList = Array.from(gameStates.keys());
   res.json(gamesList);
 });
 
@@ -51,10 +51,8 @@ app.post("/api/createNewGame", (req, res) => {
 
 const PORT = 3005;
 
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
+viteExpress.listen(app, PORT, () => {
+  console.log(`Server is listening on port ${PORT}...`);
+});
 
 export default app;

@@ -3,143 +3,90 @@ import {
   getWinner,
   type CellIndex,
   type GameState,
-  createGame,
+  type Board,
+  type UUID,
+  type CellProps,
 } from "./tic-tac-toe";
 import "./App.css";
+import {
+  sendMove,
+  requestGames,
+  requestJoinGame,
+  requestNewGame,
+} from "./services/api.ts";
+import { CurrentGame } from "./components/currentGame.tsx";
+import { Lobby } from "./components/lobby.tsx";
 
 function App() {
-  const [gameState, setGameState] = useState(createGame()); // Start with null
-
-  async function createNewGame() {
-    try {
-      const res = await fetch("/api/createNewGame", {
-        method: "POST",
-      });
-      const json = await res.json();
-      setGameState(json);
-      console.log("creatednewgame");
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function move(index: CellIndex) {
-    try {
-      const res = await fetch("/api/move", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          index: index,
-        }),
-      });
-      const json = await res.json();
-      setGameState(json);
-      console.log("moved player");
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  const [currentGameState, setCurrentGameState] = useState<GameState | null>(
+    null,
+  );
+  const [currentBoardID, setcurrentBoardID] = useState<UUID | null>(null); // Start with null
+  const [games, setGames] = useState<Array<UUID> | null>(null);
 
   useEffect(() => {
     console.log("creating new game!");
-    console.log(gameState);
-    createNewGame();
+    const init = async () => {
+      const startGameList = await getGames();
+
+      if (!startGameList) {
+        await createGame();
+        await getGames();
+      }
+      console.log("listing games!");
+    };
+    init();
   }, []);
 
-  function IndividualCell(props: { index: CellIndex }) {
-    return (
-      <button
-        onClick={() => move(props.index)}
-        style={{
-          width: "100%",
-          aspectRatio: 1,
-          borderTop: [0, 1, 2].includes(props.index)
-            ? "1px solid white"
-            : "1px solid black",
-          borderBottom: [6, 7, 8].includes(props.index)
-            ? "1px solid white"
-            : "1px solid black",
-          borderRight: [2, 5, 8].includes(props.index)
-            ? "1px solid white"
-            : "1px solid black",
-          borderLeft: [0, 3, 6].includes(props.index)
-            ? "1px solid white"
-            : "1px solid black",
-          backgroundColor:
-            gameState.board[props.index] !== null ? "light-grey" : "white",
-        }}
-      >
-        {gameState.board[props.index]}
-      </button>
-    );
+  async function createGame() {
+    const newGame = await requestNewGame(); // API call
+    setCurrentGameState(newGame);
+    setGames(await getGames()); // Refresh the games list!
+    return newGame; // Update state
   }
 
-  function WinnerDisplay() {
-    if (gameState.winner !== null) {
-      return <h1>{gameState.winner} Wins!!!!</h1>;
-    } else {
-      return <h1></h1>;
-    }
+  async function joinGame(game: UUID) {
+    const updatedGameState = await requestJoinGame(game); // API call
+    setcurrentBoardID(game);
+    setCurrentGameState(updatedGameState);
+    return updatedGameState; // Update state
   }
 
-  if (!gameState) {
+  async function enterLobby() {
+    setcurrentBoardID(null);
+    setCurrentGameState(null);
+  }
+
+  async function getGames() {
+    const gamesList = await requestGames(); // API call
+    setGames(gamesList);
+    return gamesList; // Update state
+  }
+
+  async function makeMove(currentGame: UUID, index: CellIndex) {
+    const updatedGameState = await sendMove({ currentGame, index }); // API call
+    setCurrentGameState(updatedGameState);
+    return updatedGameState; // Update state
+  }
+
+  if (!games) {
     return "Loading";
-  } else {
-    return (
-      <>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-          }}
-        >
-          <h1> Tic, Tac, Toe</h1>
-          <br />
-          current player: {gameState.currentPlayer}
-          <br />
-        </div>
-        <div
-          style={{
-            display: "grid",
-            width: "100%",
-            gap: "0px",
-            padding: "0px",
-            justifyContent: "center",
-            alignItems: "center",
-            maxWidth: "min(500px,80vh)",
-            margin: "0 auto",
-            gridTemplateColumns: "repeat(3,1fr)",
-          }}
-        >
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <IndividualCell key={i} index={i as CellIndex} />
-          ))}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-          }}
-        >
-          <WinnerDisplay />
-        </div>
-      </>
-    );
   }
+
+  return currentBoardID && currentGameState ? (
+    <CurrentGame
+      board_id={currentBoardID}
+      currentGameState={currentGameState}
+      onMove={(index) => makeMove(currentBoardID, index)}
+      enterLobby={() => enterLobby()}
+    />
+  ) : (
+    <Lobby
+      games={games}
+      onJoin={(game: UUID) => joinGame(game)}
+      createGame={() => createGame()}
+    />
+  );
 }
-
-// Create a 'cell' component
-
-export type CellProps = {
-  cellIndex: CellIndex;
-  gameState: GameState;
-  onClick: () => void;
-};
 
 export default App;
