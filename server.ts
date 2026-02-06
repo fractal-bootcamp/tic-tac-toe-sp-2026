@@ -30,6 +30,18 @@ function createGameHandler(request: express.Request, response: express.Response)
     response.status(201).json(game)
 }
 
+function moveHandler(request: express.Request, response: express.Response){
+    const { id, position } = request.body ?? {}
+    const game = games.get(id)
+    if (!game){
+        response.status(404).json({"error": "Game not found"})
+        return
+    }
+    const nextGame = makeMove(game, position)
+    games.set(id, game)
+    response.json(nextGame)
+}
+
 // Create new game
 app.post('/api/create', createGameHandler)
 
@@ -40,12 +52,8 @@ app.get("/api/games", (request, response) => {
 })
 
 
-// // Post move to server - verified with Postman
-// app.post("/api/move", (request, response)=> {
-//     const position = request.body.position 
-//     game = makeMove(game, position)
-//     response.json(game)
-// })
+// // Post move to server  
+app.post("/api/move", moveHandler)
 
 // // Reset game - to be rewritten!! need to separate game creation from game reset
 // app.post('/api/game/reset', (request, response) => {
@@ -55,5 +63,5 @@ app.get("/api/games", (request, response) => {
 
 if (process.env.NODE_ENV !== "test"){
     ViteExpress.listen(app, PORT, () => 
-        console.log(`Server is listening on port ${PORT}`));
+        console.log(`Server is listening on port ${PORT}`))
 }

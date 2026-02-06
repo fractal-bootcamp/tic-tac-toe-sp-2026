@@ -61,7 +61,30 @@ describe("getGameList", () => {
 // ---------------------------------------------------------------------------
 // make move
 // ---------------------------------------------------------------------------
+describe("makeMove", () => {
+    it("updates board with the move", async () => {
+        const created = await request(app).post("/api/create").send()
+        const response = await request(app)
+            .post("/api/move") 
+            .send({id: created.body.id, position: 0})
 
+        expect(response.status).toBe(200)
+        expect(response.body.board[0]).toBe("X")
+        expect(response.body.currentPlayer).toBe("O") 
+    })
+
+    //  it("sends move to the right game", async () => {
+    //     const game1 = await request(app).post("/api/create").send()
+    //     const game2 = await request(app).post("/api/create").send()
+        
+    //     const move = await request(app)
+    //         .post("/api/move") 
+    //         .send({id: game1.body.id, position: 0})
+    //     
+    // })
+
+
+})
 
 // SAVE FOR AFTER GAME LIST AND MAKE MOVE ARE DONE
 // ---------------------------------------------------------------------------
