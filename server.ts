@@ -1,10 +1,17 @@
 //e.g server.js
 import express from "express";
+import expressWs from "express-ws";
+
 import ViteExpress from "vite-express";
 
 import { makeMove, createGame } from "./src/tic-tac-toe";
 import type { GameState } from "./src/tic-tac-toe";
-export const app = express();
+import type WebSocket from "ws";
+
+// var expressWs = require("express-ws")(app);
+
+const { app } = expressWs(express());
+
 app.use(express.json());
 
 // let game: GameState = {
@@ -15,6 +22,8 @@ app.use(express.json());
 // };
 
 export let games = new Map<string, GameState>();
+
+let socketGames = new Map<string, Set<WebSocket>>();
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -55,11 +64,7 @@ app.get("/api/games/:id", (req, res) => {
 });
 
 app.post("/api/games/:id/move", (req, res) => {
-  console.log("making move!");
   const { position } = req.body;
-
-  console.log(position);
-
   // validate index
   if (typeof position !== "number") {
     return res.status(400).json({ error: "Position must be a number" });
@@ -76,7 +81,15 @@ app.post("/api/games/:id/move", (req, res) => {
     const updatedGame = makeMove(game, position);
 
     games.set(req.params.id, updatedGame);
+    const recipients = socketGames.get(req.params.id);
 
+    if (recipients) {
+      recipients.forEach((recipient) => {
+        if (recipient.readyState === 1) {
+          recipient.send(JSON.stringify(updatedGame));
+        }
+      });
+    }
     return res.json(updatedGame);
   } catch (err) {
     if (err instanceof Error) {
@@ -118,16 +131,56 @@ app.delete("/api/games/:id", (req, res) => {
   res.sendStatus(204);
 });
 
-// describe.only("DELETE /api/games/:id", () => {
-//   it("should delete an existing game", async () => {
-//     const createResponse = await request(app)
-//       .post("/api/newgame")
-//       .expect(200);
+//gamesession socket
+//gamesession socket
+//gamesession socket
+//gamesession socket
 
-//     const gameId = createResponse.body.id;
+app.ws("/api/games/:id/ws", function (ws, req) {
+  const gameId = req.params.id as string;
+
+  if (!socketGames.has(gameId)) {
+    socketGames.set(gameId, new Set());
+  }
+
+  const clients = socketGames.get(gameId)!;
+  clients.add(ws);
+
+  // Send welcome message
+  ws.send(
+    JSON.stringify({
+      type: "system",
+      message: `Welcome! ${clients.size} user(s) online.`,
+    }),
+  );
+
+  ws.on("message", function (msg) {
+    const msgStr = msg.toString();
+    console.log("chat message:", msgStr);
+
+    // Broadcast to everyone except sender
+    clients.forEach((client) => {
+      if (client !== ws && client.readyState === 1) {
+        client.send(msgStr);
+      }
+    });
+  });
+
+  ws.on("close", () => {
+    clients.delete(ws);
+    if (clients.size === 0) {
+      socketGames.delete(gameId);
+    }
+  });
+});
+
+//gamesession socket
+//gamesession socket
+//gamesession socket
+//gamesession socket
 
 const PORT = 5050;
 
-ViteExpress.listen(app, PORT, () =>
+ViteExpress.listen(app as any, PORT, () =>
   console.log(`Server is listening on ${PORT}...`),
 );
