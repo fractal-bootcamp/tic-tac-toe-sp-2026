@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
+import type { Player, Cell, Board, GameState, Winner, winnerAndState, Lobby } from './types/types';
 
 const app = express()
 
@@ -7,25 +8,6 @@ app.use(express.json())
 
 app.use(cors({ origin: "http://localhost:5173" }))
 
-//to do: create a separate schema file with the types so its not messy here.
-
-type Player = "X" | "O";
-
-type Cell = Player | null;
-
-type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell];
-
-export type GameState = {
-  board: Board;
-  currentPlayer: Player;
-};
-
-type Winner = Player | 'CATS' | null
-
-type winnerAndState = {
-  gameState: GameState,
-  winner: Winner
-}
 
 let WinnerAndState:winnerAndState = {
   gameState: {
