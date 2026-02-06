@@ -21,6 +21,12 @@ export type CellIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 6 | 7 | 8;
 
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
+export type CellProps = {
+  cellIndex: CellIndex;
+  gameState: GameState;
+  onClick: () => void;
+};
+
 export const winLines: [number, number, number][] = [
   [0, 1, 2],
   [3, 4, 5],
