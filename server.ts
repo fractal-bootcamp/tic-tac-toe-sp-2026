@@ -3,9 +3,13 @@ import expressWs from "express-ws";
 import ViteExpress from "vite-express";
 import { type GameState, createGame, makeMove, } from "./src/tic-tac-toe.ts"
 import { humanId } from "human-id";
-import type {WebSocket} from "ws";
+import type { WebSocket } from "ws";
+import { createServer } from "http";
 
-const { app } = expressWs(express());
+const app = express();
+const server = createServer(app);
+expressWs(app, server);
+
 app.use(express.json());
 
 let games: Record<string, GameState> = {};
@@ -78,7 +82,7 @@ app.post("/reset-all", (_,res) => {
 // WebSocket endpoints
 
 app.ws("/game/:id/ws", (ws, req) => {
-    const gameId = req.params.id;
+    const gameId = req.params.id as string;
 
     if (!gameConnections.has(gameId)) {
         gameConnections.set(gameId, new Set());
@@ -98,6 +102,8 @@ app.ws("/game/:id/ws", (ws, req) => {
 });
 
 
-ViteExpress.listen(app, 3000, () => console.log("Server is listening..."));
+ViteExpress.bind(app, server).then(() => {
+    server.listen(3000,() => console.log("Server is listening..."));
+});
 
 export default app;
