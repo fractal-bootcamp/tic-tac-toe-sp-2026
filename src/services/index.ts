@@ -29,8 +29,8 @@ const makeMove = async (newObj: Body, id:string) => {
   return response.data
 }
 
-const newGame = async (): Promise<winnerAndState> => {
-  const response = await axios.post(`${baseURL}/newGame`)
+const newGame = async (id: string): Promise<winnerAndState> => {
+  const response = await axios.post(`${baseURL}/newGame/${id}`)
   return response.data
 }
 

@@ -9,17 +9,17 @@ import Grid from "./grid";
 import Message from "./topMessage";
 import services from "../services/index";
 
-const Game = () => {
-  const [gameState, setGameState] = useState<GameState | null>(null);
+const Game = ({ id }: { id: string }) => {
   const [topMessage, setTopMessage] = useState<string | null>(null);
+  const [gameState, setGameState] = useState<GameState | null>(null);
 
   useEffect(() => {
-    services.getGame().then((r) => setGameState(r.gameState));
-  }, []);
+    services.getGame(id).then((r) => setGameState(r.gameState));
+  }, [id]);
 
   const resetGame = async () => {
     setTopMessage(null);
-    const newGame: winnerAndState = await services.newGame();
+    const newGame: winnerAndState = await services.newGame(id);
     setGameState(newGame.gameState);
   };
 
@@ -32,7 +32,7 @@ const Game = () => {
       return;
     }
 
-    const newState = await services.makeMove({ position, player });
+    const newState = await services.makeMove({ position, player }, id);
 
     setGameState(newState.gameState);
 
