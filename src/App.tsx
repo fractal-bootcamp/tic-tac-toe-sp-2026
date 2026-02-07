@@ -112,7 +112,7 @@ function App() {
   const isGameOver = !!winner || isTie;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen font-pixel text-main-teal text-xs md:text-base px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen font-pixel text-main-teal text-sm md:text-base px-4">
       {/* STATUS MESSAGE */}
       {!isGameOver && (
         <p
@@ -123,23 +123,23 @@ function App() {
           }
         >
           <span className="flex items-center gap-2">
-            Current player: {symbolFor(gameState.currentPlayer, "w-10 h-10 md:w-14 md:h-14")}{" "}
+            Current player: {symbolFor(gameState.currentPlayer, "w-12 h-12 md:w-14 md:h-14")}{" "}
             {gameState.currentPlayer === "X" ? "Snails" : "Garden"}
           </span>
         </p>
       )}
       {winner === "X" && (
-        <p className="text-olive text-[10px] md:text-sm font-bold animate-winner-bounce flex items-center gap-2 text-center">
-          Oh no! The snails took over the garden! <PixelIcon src="/snail.png" alt="Snail" size="w-10 h-10 md:w-12 md:h-12" />
+        <p className="text-olive text-xs md:text-sm font-bold animate-winner-bounce flex items-center gap-2 text-center">
+          Oh no! The snails took over the garden! <PixelIcon src="/snail.png" alt="Snail" size="w-12 h-12 md:w-14 md:h-14" />
         </p>
       )}
       {winner === "O" && (
-        <p className="text-garden-pink text-[10px] md:text-sm font-bold animate-winner-bounce flex items-center gap-2 text-center">
-          Yay! The garden is flourishing! <PixelIcon src="/flower.png" alt="Flower" size="w-10 h-10 md:w-12 md:h-12" />
+        <p className="text-garden-pink text-xs md:text-sm font-bold animate-winner-bounce flex items-center gap-2 text-center">
+          Yay! The garden is flourishing! <PixelIcon src="/flower.png" alt="Flower" size="w-12 h-12 md:w-14 md:h-14" />
         </p>
       )}
       {isTie && (
-        <p className="text-main-teal text-[10px] md:text-sm text-center">
+        <p className="text-main-teal text-xs md:text-sm text-center">
           The snails and flowers share the garden... it's a tie!
         </p>
       )}
