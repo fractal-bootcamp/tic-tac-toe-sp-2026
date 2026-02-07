@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { GameState, BoardSize } from "../tic-tac-toe";
 import GameBoardView from "./GameBoardView";
 import "../Cell.css";
@@ -23,6 +24,19 @@ export default function GameList({
   selectedSize,
   onSizeChange,
 }: GameListProps) {
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+  const handleDelete = (gameId: string) => {
+    setDeletingIds((prev) => new Set(prev).add(gameId));
+    setTimeout(() => {
+      deleteGame(gameId);
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(gameId);
+        return next;
+      });
+    }, 300);
+  };
   return (
     <>
       <br />
@@ -47,7 +61,7 @@ export default function GameList({
       <div>
         {games.length > 0
           ? games.map((game) => (
-              <div key={game.id} className="gameOption">
+              <div key={game.id} className={`gameOption${deletingIds.has(game.id) ? " fade-out" : ""}`}>
                 <div style={{ fontSize: "0.8em", color: "#666" }}>{game.boardSize}x{game.boardSize}</div>
                 {game.winner ? `winner was ${game.winner}` : " no winner "}
                 {!game.winner && !game.board.includes(null) && "draw"}
@@ -56,7 +70,7 @@ export default function GameList({
                 <GameBoardView gameBoard={game.board} boardSize={game.boardSize} />
                 <br />
                 <button onClick={() => onGameSelect(game.id)}>play</button>
-                <button onClick={() => deleteGame(game.id)}>delete</button>
+                <button onClick={() => handleDelete(game.id)}>delete</button>
                 <button onClick={() => resetGame(game.id)}>reset</button>
               </div>
             ))

@@ -1,0 +1,167 @@
+MULTI-DIMENSIONAL TIC-TAC-TOE - KEY CHANGES
+============================================
+
+This document outlines the key changes made to convert the tic-tac-toe game
+from a fixed 3x3 board to a configurable NxN board (1x1 to 7x7).
+
+
+================================================================================
+PART 1: CORE GAME LOGIC CHANGES (src/tic-tac-toe.ts)
+================================================================================
+
+1. FLEXIBLE BOARD TYPE (lines 3, 6)
+-----------------------------------
+
+BEFORE: Fixed 9-element tuple
+  export type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell];
+
+AFTER: Dynamic array with configurable size
+  export type Board = Cell[];
+  export type BoardSize = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+
+2. EXTENDED GAMESTATE (lines 13-21)
+-----------------------------------
+
+Added new fields to track:
+  - boardSize    : stores the NxN dimension
+  - id           : unique game identifier
+  - winner       : cached winner state
+  - moveHistory  : tracks all moves for undo functionality
+  - takebackRequest : supports takeback feature
+
+
+3. DYNAMIC WIN LINE GENERATION (lines 28-68)
+--------------------------------------------
+
+The generateWinLines() function is the core change. Instead of hardcoded win
+conditions for a 3x3 board, it dynamically calculates:
+
+  - Rows: row * size + col for each row
+  - Columns: row * size + col for each column
+  - Main diagonal: i * size + i
+  - Anti-diagonal: i * size + (size - 1 - i)
+
+Example for 4x4 board:
+  - 16 total cells (indices 0-15)
+  - 4 row lines, 4 column lines, 2 diagonal lines = 10 win lines
+  - Each line contains 4 indices that must match
+
+
+4. DYNAMIC createGame (lines 70-83)
+-----------------------------------
+
+BEFORE: Hardcoded 9 nulls
+  board: [null, null, null, null, null, null, null, null, null]
+
+AFTER: Creates size * size cells dynamically
+  const totalCells = size * size;
+  const board: Board = Array(totalCells).fill(null);
+
+
+5. DYNAMIC POSITION VALIDATION (lines 99-105)
+---------------------------------------------
+
+Position bounds now calculated from board size:
+  const maxPosition = state.boardSize * state.boardSize - 1;
+  if (position < 0 || position > maxPosition)
+    throw new Error(`Position must be between 0 and ${maxPosition}`);
+
+
+6. NEW FEATURES ADDED
+---------------------
+
+  - Move history tracking (line 125) - enables undo
+  - undoLastMove() (lines 130-148) - reverts the last move
+  - Takeback request system (lines 150-180) - allows players to request/approve undos
+
+The design keeps the same flat array representation (index = row * size + col)
+but generalizes everything to work with any NxN board from 1x1 to 7x7.
+
+
+================================================================================
+PART 2: UI CHANGES
+================================================================================
+
+1. APP.TSX - COMPLETE RESTRUCTURE
+---------------------------------
+
+BEFORE: Simple single-game view with hardcoded state
+  let [gameState, setGameState] = useState(getInitialGame())
+  return <div>Hello World! current player: {gameState.currentPlayer}</div>;
+
+AFTER: Full lobby system with game management
+  - View state (lobby vs game) - navigate between game list and active game
+  - Board size selector - selectedSize state with dropdown (1-7)
+  - API integration - getGameList(), newGame(size), deleteGame(), resetGame()
+  - Game selection - click a game to play it
+
+
+2. GAMELIST.TSX (NEW COMPONENT)
+-------------------------------
+
+Board size picker (lines 28-40):
+  <select value={selectedSize} onChange={(e) => onSizeChange(Number(e.target.value) as BoardSize)}>
+    {BOARD_SIZES.map((size) => (
+      <option key={size} value={size}>{size}x{size}</option>
+    ))}
+  </select>
+
+Dynamic game cards showing each game's boardSize:
+  <div style={{ fontSize: "0.8em", color: "#666" }}>{game.boardSize}x{game.boardSize}</div>
+
+
+3. GAMEBOARDVIEW.TSX (NEW COMPONENT)
+------------------------------------
+
+Renders any NxN board dynamically using boardSize:
+  <div style={{ width: `${boardSize * 16}px`, height: `${boardSize * 16}px` }}>
+    {gameBoard.map((cell, index) => (
+      <span key={index}>
+        {cell === null ? `_` : cell}
+        {(index + 1) % boardSize === 0 && <br />}  // Line break every N cells
+      </span>
+    ))}
+  </div>
+
+
+4. GAMEVIEW.TSX (NEW COMPONENT) - MAIN GAME BOARD
+-------------------------------------------------
+
+Dynamic grid rendering (lines 163-184):
+  const size = currentGame.boardSize;
+  const rows = Array.from({ length: size }, (_, i) => i);
+
+  <table style={{ width: `${size * 80}px` }}>
+    {rows.map((row) => (
+      <tr key={row}>
+        {currentGame.board
+          .slice(row * size, row * size + size)  // Slice N cells per row
+          .map((cell, colIndex) => {
+            const index = row * size + colIndex;  // Calculate flat index
+            return <td onClick={() => makeMove(currentGame, index)}>{cell}</td>;
+          })}
+      </tr>
+    ))}
+  </table>
+
+Additional features:
+  - WebSocket connection for real-time updates
+  - Player selection (X or O) with turn indicators
+  - Takeback system - request/approve/deny UI (lines 108-120, 198-212)
+  - Visual feedback - board dims when not your turn (opacity: 0.6)
+
+
+================================================================================
+SUMMARY TABLE
+================================================================================
+
+Aspect              | Before              | After
+--------------------|---------------------|----------------------------------
+Board rendering     | Hardcoded 3x3       | Dynamic NxN via boardSize
+Game creation       | None                | Size selector dropdown (1-7)
+Cell index calc     | Implicit            | row * size + colIndex
+Table width         | Fixed               | size * 80px
+Row generation      | Hardcoded           | Array.from({ length: size })
+Win detection       | Hardcoded 8 lines   | Generated dynamically
+Position validation | 0-8                 | 0 to (size*size - 1)
