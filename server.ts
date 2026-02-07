@@ -43,11 +43,43 @@ app.get("/game/:id", (req,res) => {
     res.json(game); 
 });
 
-app.post("/create", (_,res) => {
+app.post("/create", (req,res) => {
+    const { playerName } = req.body || {};
     const id = humanId();
     const game = createGame(id);
+    if (playerName) {
+        game.players = { X: playerName, O: null };
+    }
     games[id] = game;
     res.json(game);
+});
+
+app.post("/join", (req,res) => {
+    const { gameId, playerName } = req.body;
+    const game = games[gameId];
+
+    if (!game) {
+        res.status(404).json({ error: "Game not found" });
+        return;
+    }
+
+    if (!game.players) {
+        game.players = { X: null, O: null };
+    }
+
+    let role: "X" | "O" | "spectator";
+    if (game.players.X === null) {
+        game.players.X = playerName;
+        role = "X";
+    } else if (game.players.O === null) {
+        game.players.O = playerName;
+        role = "O";
+    } else {
+        role = "spectator";
+    }
+
+    broadcastGameUpdate(gameId, game);
+    res.json({ gameState: game, role });
 });
 
 app.get("/games", (_,res) => {
@@ -56,7 +88,7 @@ app.get("/games", (_,res) => {
 })
 
 app.post("/move", (req,res) => {
-    const { gameId, position } = req.body;
+    const { gameId, position, playerName } = req.body;
     const game = games[gameId]
 
     if (!game) {
@@ -64,11 +96,19 @@ app.post("/move", (req,res) => {
         return;
     }
 
+    if (playerName && game.players) {
+        const expectedPlayer = game.players[game.currentPlayer];
+        if (expectedPlayer && playerName !== expectedPlayer) {
+            res.status(403).json({ error: "It's not your turn" });
+            return;
+        }
+    }
+
     try {
         games[gameId] = makeMove(game, position);
         broadcastGameUpdate(gameId, games[gameId]);
         res.json(games[gameId]);
-    } 
+    }
     catch (error) {
         res.status(400).json({ error: (error as Error).message})
     }

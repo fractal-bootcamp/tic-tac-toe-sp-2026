@@ -15,6 +15,10 @@ export type GameState = {
   board: Board;
   currentPlayer: Player;
   id: string;
+  players?: {
+    X: string | null;
+    O: string | null;
+  };
 };
 
 export function createGame(id: string): GameState {
@@ -42,8 +46,9 @@ export function makeMove(gameState: GameState, position: number,): GameState {
   const nextPlayer = gameState.currentPlayer === "X" ? "O" : "X"  
   return {
     id: gameState.id,
-    board: newBoard as Board, 
+    board: newBoard as Board,
     currentPlayer: nextPlayer,
+    players: gameState.players,
   }
 }
 
