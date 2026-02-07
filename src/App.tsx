@@ -68,11 +68,9 @@ function App() {
       <div className="flex flex-col items-center justify-center min-h-screen font-pixel text-main-teal text-xs md:text-base px-4">
         {/* LOBBY */}
         <h1 className="text-base md:text-3xl font-bold mb-4 flex flex-col md:flex-row items-center gap-2 md:gap-3 text-center">
-          <div className="flex items-center gap-2">
-            <PixelIcon src="/snail.png" alt="Snail" size="w-14 h-14 md:w-20 md:h-20" />
-            <PixelIcon src="/flower.png" alt="Flower" size="w-14 h-14 md:w-20 md:h-20" />
-          </div>
+          <PixelIcon src="/snail.png" alt="Snail" size="w-14 h-14 md:w-20 md:h-20" />
           Snails vs Garden
+          <PixelIcon src="/flower.png" alt="Flower" size="w-14 h-14 md:w-20 md:h-20" />
         </h1>
         {gameList.length > 0 && (
           <div className="flex flex-col items-center gap-2 mt-4">
