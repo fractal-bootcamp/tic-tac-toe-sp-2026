@@ -57,7 +57,7 @@ function App() {
         <Lobby lobby={lobby!} switchState={switchState} addGame={addGame} />
       );
     } else if (currentView === "game") {
-      return <Game id={gameId!} />;
+      return <Game id={gameId!} switchState={switchState} />;
     } else if (currentView === "createGame") {
       return (
         <CreateGame

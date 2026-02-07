@@ -4,12 +4,18 @@ import {
   type GameState,
   type Player,
   type winnerAndState,
+  type switchState,
 } from "../../types/types";
 import Grid from "./grid";
 import Message from "./topMessage";
 import services from "../services/index";
 
-const Game = ({ id }: { id: string }) => {
+type gameType = {
+  id: string;
+  switchState: switchState;
+};
+
+const Game = ({ id, switchState }: gameType) => {
   const [topMessage, setTopMessage] = useState<string | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
 
@@ -60,6 +66,7 @@ const Game = ({ id }: { id: string }) => {
           ) : (
             <h3>current player: {gameState.currentPlayer}</h3>
           )}
+          <button onClick={() => switchState("lobby")}>back</button>
           <Grid gameState={gameState} handleMove={handleMove}></Grid>
         </div>
       ) : (
