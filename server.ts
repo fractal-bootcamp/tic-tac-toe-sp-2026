@@ -1,8 +1,8 @@
 import express from "express";
 import expressWs from "express-ws";
 import ViteExpress from "vite-express";
-import { makeMove, createGame } from "./src/tic-tac-toe";
-import type { GameState } from "./src/tic-tac-toe";
+import { makeMove, createGame, requestTakeback, respondToTakeback } from "./src/tic-tac-toe";
+import type { GameState, BoardSize, Player } from "./src/tic-tac-toe";
 import type WebSocket from "ws";
 
 export const { app } = expressWs(express());
@@ -16,9 +16,11 @@ let socketGames = new Map<string, Set<WebSocket>>();
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-app.post("/api/newgame", (_req, res) => {
+app.post("/api/newgame", (req, res) => {
+  const { size } = req.body || {};
+  const boardSize: BoardSize = [1, 2, 3, 4, 5, 6, 7].includes(size) ? size : 3;
   const newGameId = crypto.randomUUID();
-  games.set(newGameId, createGame(newGameId));
+  games.set(newGameId, createGame(newGameId, boardSize));
   res.json(games.get(newGameId));
 });
 
@@ -78,16 +80,21 @@ app.post("/api/games/:id/move", (req, res) => {
 
 app.post("/api/games/:id/reset", (req, res) => {
   const { id } = req.params;
+  const existingGame = games.get(id);
 
-  if (!games.has(id)) {
+  if (!existingGame) {
     return res.status(404).json({ error: "Game not found" });
   }
 
+  const boardSize = existingGame.boardSize;
   const gameReset: GameState = {
     id,
-    board: [null, null, null, null, null, null, null, null, null],
+    board: Array(boardSize * boardSize).fill(null),
+    boardSize,
     currentPlayer: "X",
     winner: null,
+    moveHistory: [],
+    takebackRequest: null,
   };
 
   games.set(id, gameReset);
@@ -126,13 +133,81 @@ app.ws("/api/games/:id/ws", function (ws, req) {
 
   ws.on("message", function (msg) {
     const msgStr = msg.toString();
-    console.log("chat message:", msgStr);
+    console.log("ws message:", msgStr);
 
-    clients.forEach((client) => {
-      if (client !== ws && client.readyState === 1) {
-        client.send(msgStr);
+    try {
+      const data = JSON.parse(msgStr);
+
+      // Handle takeback request
+      if (data.type === "takeback_request") {
+        const game = games.get(gameId);
+        if (!game) return;
+
+        try {
+          const updatedGame = requestTakeback(game, data.player as Player);
+          games.set(gameId, updatedGame);
+
+          // Broadcast to all clients including sender
+          clients.forEach((client) => {
+            if (client.readyState === 1) {
+              client.send(JSON.stringify({
+                type: "takeback_requested",
+                game: updatedGame,
+                requestedBy: data.player,
+              }));
+            }
+          });
+        } catch (err) {
+          ws.send(JSON.stringify({
+            type: "error",
+            message: err instanceof Error ? err.message : "Failed to request takeback",
+          }));
+        }
+        return;
       }
-    });
+
+      // Handle takeback response
+      if (data.type === "takeback_response") {
+        const game = games.get(gameId);
+        if (!game) return;
+
+        try {
+          const updatedGame = respondToTakeback(game, data.approved);
+          games.set(gameId, updatedGame);
+
+          // Broadcast to all clients
+          clients.forEach((client) => {
+            if (client.readyState === 1) {
+              client.send(JSON.stringify({
+                type: "takeback_resolved",
+                game: updatedGame,
+                approved: data.approved,
+              }));
+            }
+          });
+        } catch (err) {
+          ws.send(JSON.stringify({
+            type: "error",
+            message: err instanceof Error ? err.message : "Failed to respond to takeback",
+          }));
+        }
+        return;
+      }
+
+      // Default: broadcast to other clients (chat messages)
+      clients.forEach((client) => {
+        if (client !== ws && client.readyState === 1) {
+          client.send(msgStr);
+        }
+      });
+    } catch {
+      // Not JSON, treat as chat message
+      clients.forEach((client) => {
+        if (client !== ws && client.readyState === 1) {
+          client.send(msgStr);
+        }
+      });
+    }
   });
 
   ws.on("close", () => {

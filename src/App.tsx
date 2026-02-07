@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getWinner } from "./tic-tac-toe";
-import type { GameState } from "./tic-tac-toe";
+import type { GameState, BoardSize } from "./tic-tac-toe";
 import "./Cell.css";
 
 import GameView from "./components/GameView";
@@ -12,6 +12,7 @@ function App() {
   const [gameList, setGameList] = useState<GameState[]>([]);
   const [currentGameId, setCurrentGameId] = useState("");
   const [view, setView] = useState("lobby");
+  const [selectedSize, setSelectedSize] = useState<BoardSize>(3);
 
   const getGameList = async () => {
     const response = await fetch("/api/games");
@@ -36,10 +37,14 @@ function App() {
     }
   };
 
-  const newGame = async () => {
+  const newGame = async (size: BoardSize = 3) => {
     try {
       const response = await fetch(`/api/newgame`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ size }),
       });
 
       const data = await response.json();
@@ -142,6 +147,8 @@ function App() {
           deleteGame={deleteGame}
           resetGame={resetGame}
           onGameSelect={handleGameSelect}
+          selectedSize={selectedSize}
+          onSizeChange={setSelectedSize}
         />
       ) : null}
 

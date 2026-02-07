@@ -8,7 +8,6 @@ body {
 
 /* === Board === */
 .board {
-  width: 240px; /* 3 × 80px */
   border-collapse: collapse; /* remove gaps */
   table-layout: fixed; /* fixed cell sizing */
   margin: 20px auto;

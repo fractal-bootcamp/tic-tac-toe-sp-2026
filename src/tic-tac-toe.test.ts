@@ -57,17 +57,22 @@ describe("createGame", () => {
 
   const game: GameState = {
     board: [null, null, null, null, null, null, null, null, null],
+    boardSize: 3,
     currentPlayer: "X",
     id: gameStateId,
     winner: null,
+    moveHistory: [],
+    takebackRequest: null,
   };
 
   it("game has an id", () => {
     expect(game.id).toEqual(gameStateId);
   });
-  it("id is four digits long", () => {
+  it("id is a valid UUID", () => {
     const game = createGame();
-    expect(game.id.toString().length).toBe(4);
+    expect(game.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    );
   });
 });
 

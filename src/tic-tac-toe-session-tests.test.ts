@@ -9,7 +9,7 @@ describe("Tic Tac Toe API", () => {
   });
 
   describe("POST /api/newgame", () => {
-    it("should create a new game", async () => {
+    it("should create a new game with default 3x3 board", async () => {
       const response = await request(app).post("/api/newgame").expect(200);
 
       expect(typeof response.body.id).toBe("string");
@@ -27,8 +27,21 @@ describe("Tic Tac Toe API", () => {
         null,
         null,
       ]);
+      expect(response.body.boardSize).toBe(3);
       expect(response.body.currentPlayer).toBe("X");
       expect(response.body.winner).toBe(null);
+      expect(response.body.moveHistory).toEqual([]);
+      expect(response.body.takebackRequest).toBe(null);
+    });
+
+    it("should create a game with custom board size", async () => {
+      const response = await request(app)
+        .post("/api/newgame")
+        .send({ size: 5 })
+        .expect(200);
+
+      expect(response.body.boardSize).toBe(5);
+      expect(response.body.board).toHaveLength(25);
     });
   });
 
@@ -171,8 +184,11 @@ describe("Tic Tac Toe API", () => {
       expect(response.body).toEqual({
         id: gameId,
         board: [null, null, null, null, null, null, null, null, null],
+        boardSize: 3,
         currentPlayer: "X",
         winner: null,
+        moveHistory: [],
+        takebackRequest: null,
       });
     });
 
