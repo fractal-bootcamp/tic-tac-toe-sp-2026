@@ -1,0 +1,16 @@
+node_modules
+.git
+.gitignore
+*.md
+.DS_Store
+dist
+.vscode
+.idea
+*.log
+npm-debug.log*
+coverage
+.nyc_output
+*.test.ts
+*.spec.ts
+vitest.config.*
+eslint.config.*
